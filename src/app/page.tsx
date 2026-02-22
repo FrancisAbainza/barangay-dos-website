@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ResidentAuthButton from "@/components/resident-auth-button";
+import StaffAuthButton from "@/components/staff-auth-button";
 
 const features = [
   {
@@ -107,14 +108,7 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <ResidentAuthButton />
-            <Button
-              size="lg"
-              variant="outline"
-              className="w-full cursor-pointer border-white/40 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 sm:w-auto"
-            >
-              <UserCog className="mr-2 h-5 w-5" />
-              I am a Staff
-            </Button>
+            <StaffAuthButton />
           </div>
         </div>
       </section>

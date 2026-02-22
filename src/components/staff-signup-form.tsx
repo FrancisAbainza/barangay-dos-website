@@ -3,33 +3,34 @@
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import { ResidentLoginFormValues, residentLoginSchema } from '@/schemas/resident-auth-schema';
+import { StaffSignupFormValues, staffSignupSchema } from '@/schemas/staff-auth-schema';
+import { signupStaff } from '@/services/staff-service';
 
-export function ResidentLoginForm({ onSuccess }: { onSuccess?: () => void }) {
+export function StaffSignupForm({ onSuccess }: { onSuccess?: () => void }) {
   const [error, setError] = useState<string | null>(null);
-  const { loginResident } = useAuth();
 
-  const form = useForm<ResidentLoginFormValues>({
-    resolver: zodResolver(residentLoginSchema),
+  const form = useForm<StaffSignupFormValues>({
+    resolver: zodResolver(staffSignupSchema),
     defaultValues: {
-      email: '',
+      fullName: '',
+      idNumber: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
-  async function onSubmit(values: ResidentLoginFormValues) {
+  async function onSubmit(values: StaffSignupFormValues) {
     setError(null);
 
     try {
-      await loginResident(values.email, values.password);
+      await signupStaff(values.idNumber, values.password, values.fullName);
       onSuccess?.();
     } catch (err: any) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
+      setError(err.message || 'Failed to create account. Please try again.');
     }
   }
 
@@ -42,17 +43,35 @@ export function ResidentLoginForm({ onSuccess }: { onSuccess?: () => void }) {
       )}
       <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
         <Controller
-          name="email"
+          name="fullName"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Full Name</FieldLabel>
               <Input
                 {...field}
                 id={field.name}
-                type="email"
+                type="text"
                 aria-invalid={fieldState.invalid}
-                placeholder="Enter your email"
+                placeholder="Enter your full name"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="idNumber"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>ID Number</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="text"
+                aria-invalid={fieldState.invalid}
+                placeholder="Enter your ID number"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -70,7 +89,25 @@ export function ResidentLoginForm({ onSuccess }: { onSuccess?: () => void }) {
                 id={field.name}
                 type="password"
                 aria-invalid={fieldState.invalid}
-                placeholder="Enter your password"
+                placeholder="Create a password"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="confirmPassword"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="password"
+                aria-invalid={fieldState.invalid}
+                placeholder="Confirm your password"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -81,10 +118,10 @@ export function ResidentLoginForm({ onSuccess }: { onSuccess?: () => void }) {
           {form.formState.isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Logging in...
+              Creating account...
             </>
           ) : (
-            'Login'
+            'Create Account'
           )}
         </Button>
       </fieldset>

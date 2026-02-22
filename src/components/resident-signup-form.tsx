@@ -8,14 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import { SignupFormValues, signupSchema } from '@/schemas/auth-schema';
+import { ResidentSignupFormValues, residentSignupSchema } from '@/schemas/resident-auth-schema';
 
 export function ResidentSignupForm({ onSuccess }: { onSuccess?: () => void }) {
   const [error, setError] = useState<string | null>(null);
-  const { signup } = useAuth();
+  const { signupResident } = useAuth();
 
-  const form = useForm<SignupFormValues>({
-    resolver: zodResolver(signupSchema),
+  const form = useForm<ResidentSignupFormValues>({
+    resolver: zodResolver(residentSignupSchema),
     defaultValues: {
       fullName: '',
       email: '',
@@ -24,11 +24,11 @@ export function ResidentSignupForm({ onSuccess }: { onSuccess?: () => void }) {
     },
   });
 
-  async function onSubmit(values: SignupFormValues) {
+  async function onSubmit(values: ResidentSignupFormValues) {
     setError(null);
 
     try {
-      await signup(values.email, values.password, values.fullName);
+      await signupResident(values.email, values.password, values.fullName);
       onSuccess?.();
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');

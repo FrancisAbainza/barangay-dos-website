@@ -8,25 +8,25 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import { ResidentLoginFormValues, residentLoginSchema } from '@/schemas/resident-auth-schema';
+import { StaffLoginFormValues, staffLoginSchema } from '@/schemas/staff-auth-schema';
 
-export function ResidentLoginForm({ onSuccess }: { onSuccess?: () => void }) {
+export function StaffLoginForm({ onSuccess }: { onSuccess?: () => void }) {
   const [error, setError] = useState<string | null>(null);
-  const { loginResident } = useAuth();
+  const { loginStaff } = useAuth();
 
-  const form = useForm<ResidentLoginFormValues>({
-    resolver: zodResolver(residentLoginSchema),
+  const form = useForm<StaffLoginFormValues>({
+    resolver: zodResolver(staffLoginSchema),
     defaultValues: {
-      email: '',
+      idNumber: '',
       password: '',
     },
   });
 
-  async function onSubmit(values: ResidentLoginFormValues) {
+  async function onSubmit(values: StaffLoginFormValues) {
     setError(null);
 
     try {
-      await loginResident(values.email, values.password);
+      await loginStaff(values.idNumber, values.password);
       onSuccess?.();
     } catch (err: any) {
       setError(err.message || 'Failed to login. Please check your credentials.');
@@ -42,17 +42,17 @@ export function ResidentLoginForm({ onSuccess }: { onSuccess?: () => void }) {
       )}
       <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
         <Controller
-          name="email"
+          name="idNumber"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+              <FieldLabel htmlFor={field.name}>ID Number</FieldLabel>
               <Input
                 {...field}
                 id={field.name}
-                type="email"
+                type="text"
                 aria-invalid={fieldState.invalid}
-                placeholder="Enter your email"
+                placeholder="Enter your ID number"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
