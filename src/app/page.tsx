@@ -13,6 +13,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ResidentAuthButton from "@/components/resident-auth-button";
 import StaffAuthButton from "@/components/staff-auth-button";
+import Image from "next/image";
+import logo from '../../public/logo.png';
 
 const features = [
   {
@@ -63,22 +65,25 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="border-b border-border bg-card px-6 py-4">
+      <header className="border-b border-border bg-card px-6 py-2">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Shield className="h-5 w-5" />
-            </div>
+            <Image
+              src={logo}
+              alt="Picture of barangay milagrosa's logo"
+              width={75}
+              height={75}
+            />
             <div>
-              <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+              <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
                 Republic of the Philippines
               </p>
-              <p className="text-sm font-bold leading-tight text-foreground">
+              <p className="text-xl font-bold leading-tight text-foreground">
                 Barangay Milagrosa
               </p>
             </div>
           </div>
-          <Badge variant="secondary" className="hidden sm:flex">
+          <Badge className="hidden sm:flex">
             Official Portal
           </Badge>
         </div>
@@ -136,7 +141,7 @@ export default function Home() {
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                       <Icon className="h-6 w-6" />
                     </div>
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge className="text-xs">
                       {badge}
                     </Badge>
                   </div>
@@ -185,7 +190,7 @@ export default function Home() {
 
             {/* Staff Card */}
             <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-10 text-center shadow-sm transition-shadow hover:shadow-md">
-              <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-secondary/30 text-secondary-foreground">
+              <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <UserCog className="h-10 w-10" />
               </div>
               <h3 className="mb-2 text-2xl font-bold text-foreground">
@@ -195,7 +200,7 @@ export default function Home() {
                 Manage barangay operations, process document requests, monitor
                 tanod dispatches, and more.
               </p>
-              <Button size="lg" variant="secondary" className="w-full cursor-pointer">
+              <Button size="lg" className="w-full cursor-pointer">
                 <UserCog className="mr-2 h-5 w-5" />
                 Enter as Staff
               </Button>

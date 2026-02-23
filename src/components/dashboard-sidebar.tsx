@@ -1,0 +1,184 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Home,
+  Megaphone,
+  FileText,
+  CalendarCheck,
+  MessageSquareWarning,
+  Eye,
+  Navigation,
+  Camera,
+  Info,
+  LogOut,
+  ChevronsUpDown,
+} from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import Image from "next/image";
+import logo from '../../public/logo.png';
+
+const residentMenuItems = [
+  { title: "Home", href: "/resident", icon: Home },
+  { title: "Announcements", href: "/resident/announcements", icon: Megaphone },
+  { title: "Document Request", href: "/resident/document-request", icon: FileText },
+  { title: "Court Reservations", href: "/resident/court-reservations", icon: CalendarCheck },
+  { title: "Complaint", href: "/resident/complaint", icon: MessageSquareWarning },
+  { title: "Transparency", href: "/resident/transparency", icon: Eye },
+  { title: "Tanod Tracking", href: "/resident/tanod-tracking", icon: Navigation },
+  { title: "Surveillance (Tentative)", href: "/resident/surveillance", icon: Camera },
+  { title: "About Us", href: "/resident/about-us", icon: Info },
+];
+
+const staffMenuItems = [
+  { title: "Home", href: "/staff", icon: Home },
+  { title: "Announcements", href: "/staff/announcements", icon: Megaphone },
+  { title: "Document Request", href: "/staff/document-request", icon: FileText },
+  { title: "Court Reservations", href: "/staff/court-reservations", icon: CalendarCheck },
+  { title: "Complaint", href: "/staff/complaint", icon: MessageSquareWarning },
+  { title: "Transparency", href: "/staff/transparency", icon: Eye },
+  { title: "Tanod Tracking", href: "/staff/tanod-tracking", icon: Navigation },
+  { title: "Surveillance (Tentative)", href: "/staff/surveillance", icon: Camera },
+  { title: "About Us", href: "/staff/about-us", icon: Info },
+];
+
+
+interface DashboardSidebarProps {
+  className?: string;
+  variant: string;
+}
+
+export default function DashboardSidebar({ className, variant }: DashboardSidebarProps) {
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
+
+  return (
+    <>
+      <Sidebar collapsible="icon" className={className}>
+        {/* Header */}
+        {!collapsed && (
+          <SidebarHeader className="flex flex-row items-center justify-center border-b border-sidebar-border py-4">
+            <div className="flex flex-col items-center gap-2">
+              <Image
+                src={logo}
+                alt="Picture of barangay milagrosa's logo"
+                width={150}
+                height={150}
+              />
+              <span className="font-semibold text-sm">Barangay Milagrosa Website</span>
+            </div>
+
+          </SidebarHeader>
+        )}
+        {/* Navigation */}
+        <SidebarContent>
+          <SidebarMenu className="p-2">
+            {(variant === "resident" ? residentMenuItems : staffMenuItems).map((item) => {
+              const Icon = item.icon;
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/resident" &&
+                  pathname.startsWith(item.href + "/"));
+
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive}
+                    tooltip={collapsed ? item.title : undefined}
+                    className="gap-3"
+                  >
+                    <Link href={item.href}>
+                      <Icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarContent>
+
+        {/* User Section */}
+        <SidebarFooter className="border-t border-sidebar-border p-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                className={`h-auto w-full gap-2 px-0 py-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${collapsed ? "justify-center" : "justify-between"
+                  }`}
+                title={collapsed ? user?.email ?? "User" : undefined}
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  <Avatar className="h-8 w-8 shrink-0">
+                    <AvatarFallback className="text-xs">
+                      {user?.email?.charAt(0).toUpperCase() ?? "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  {!collapsed && (
+                    <div className="min-w-0 text-left">
+                      <p className="truncate text-sm font-semibold leading-tight text-sidebar-foreground">
+                        {user?.email?.split("@")[0] ?? "User"}
+                      </p>
+                      <p className="truncate text-xs text-sidebar-foreground/60">
+                        {user?.email}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {!collapsed && <ChevronsUpDown className="h-4 w-4 shrink-0 text-sidebar-foreground/60" />}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" className="w-64 p-0">
+              <div className="flex items-center gap-3 p-4">
+                <Avatar className="h-10 w-10 shrink-0">
+                  <AvatarFallback>
+                    {user?.email?.charAt(0).toUpperCase() ?? "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">
+                    {user?.email?.split("@")[0] ?? "User"}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {user?.email}
+                  </p>
+                </div>
+              </div>
+              <Separator />
+              <div className="p-1">
+                <Button
+                  variant="ghost"
+                  onClick={logout}
+                  className="w-full justify-start gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Log out</span>
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarTrigger className="p-4" />
+    </>
+  );
+}
