@@ -60,11 +60,10 @@ const staffMenuItems = [
 
 
 interface DashboardSidebarProps {
-  className?: string;
   variant: string;
 }
 
-export default function DashboardSidebar({ className, variant }: DashboardSidebarProps) {
+export default function DashboardSidebar({ variant }: DashboardSidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { state } = useSidebar();
@@ -72,7 +71,7 @@ export default function DashboardSidebar({ className, variant }: DashboardSideba
 
   return (
     <>
-      <Sidebar collapsible="icon" className={className}>
+      <Sidebar collapsible="icon" className="hidden md:flex border-r-0">
         {/* Header */}
         {!collapsed && (
           <SidebarHeader className="flex flex-row items-center justify-center border-b border-sidebar-border py-4">
@@ -178,7 +177,7 @@ export default function DashboardSidebar({ className, variant }: DashboardSideba
           </Popover>
         </SidebarFooter>
       </Sidebar>
-      <SidebarTrigger className="p-4" />
+      <SidebarTrigger className="p-4 hidden md:flex" />
     </>
   );
 }
