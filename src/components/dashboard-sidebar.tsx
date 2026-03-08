@@ -16,6 +16,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { ResidentProfile, StaffProfile } from "@/types/user-profile";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -60,14 +61,17 @@ const staffMenuItems = [
 
 
 interface DashboardSidebarProps {
-  variant: string;
+  variant: "staff" | "resident";
 }
 
 export default function DashboardSidebar({ variant }: DashboardSidebarProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, userProfile, logout } = useAuth();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+
+  const staffProfile = variant === "staff" ? (userProfile as StaffProfile) : null;
+  const residentProfile = variant === "resident" ? (userProfile as ResidentProfile) : null;
 
   return (
     <>
@@ -129,16 +133,16 @@ export default function DashboardSidebar({ variant }: DashboardSidebarProps) {
                 <div className="flex min-w-0 items-center gap-2">
                   <Avatar className="h-8 w-8 shrink-0">
                     <AvatarFallback className="text-xs">
-                      {user?.email?.charAt(0).toUpperCase() ?? "U"}
+                      {userProfile?.fullName?.charAt(0).toUpperCase() ?? "U"}
                     </AvatarFallback>
                   </Avatar>
                   {!collapsed && (
                     <div className="min-w-0 text-left">
                       <p className="truncate text-sm font-semibold leading-tight text-sidebar-foreground">
-                        {user?.email?.split("@")[0] ?? "User"}
+                        {userProfile?.fullName ?? "User"}
                       </p>
                       <p className="truncate text-xs text-sidebar-foreground/60">
-                        {user?.email}
+                        {userProfile?.role}
                       </p>
                     </div>
                   )}
@@ -150,15 +154,15 @@ export default function DashboardSidebar({ variant }: DashboardSidebarProps) {
               <div className="flex items-center gap-3 p-4">
                 <Avatar className="h-10 w-10 shrink-0">
                   <AvatarFallback>
-                    {user?.email?.charAt(0).toUpperCase() ?? "U"}
+                    {userProfile?.fullName?.charAt(0).toUpperCase() ?? "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">
-                    {user?.email?.split("@")[0] ?? "User"}
+                    {userProfile?.fullName ?? "User"}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {user?.email}
+                    {staffProfile?.idNumber ?? residentProfile?.email ?? "—"}
                   </p>
                 </div>
               </div>

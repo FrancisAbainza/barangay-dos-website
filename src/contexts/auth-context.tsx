@@ -5,10 +5,13 @@ import { createUserWithEmailAndPassword, onIdTokenChanged, signInWithEmailAndPas
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { loginAction, logoutAction } from "@/actions/auth";
-import { createResident } from "@/services/residents-service";
+import { createResident, getResidentById } from "@/services/residents-service";
+import { ResidentProfile, StaffProfile } from "@/types/user-profile";
+import { getStaffById } from "@/services/staff-service";
 
 interface AuthContextType {
   user: User | null;
+  userProfile: ResidentProfile | StaffProfile | null;
   loginResident: (email: string, password: string) => Promise<void>;
   loginStaff: (idNumber: string, password: string) => Promise<void>;
   signupResident: (email: string, password: string, fullName: string) => Promise<void>;
@@ -20,15 +23,16 @@ const staffDomain = "@staff.barangay-milagrosa.local";
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<ResidentProfile | StaffProfile | null>(null);
   const router = useRouter();
 
   /*
-  If the use logs in: 
+  If the resident logs in: 
   1. Save the session cookie via server actions 
   2. Set the user in state
   3. Refresh the router to run the middleware for redirection
 
-  If the user logs out:
+  If the resident or staff logs out:
   1. Delete the session cookie via server actions
   2. Then set the user in state to null
   3. Refresh the router to run the middleware for redirection
@@ -36,32 +40,36 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
-        const token = await user.getIdToken();
-
-        // Create a session on the server
         try {
-          await loginAction(token);
-          setUser(user); // Set user only after session is created
+          const tokenResult = await user.getIdTokenResult();
+          await loginAction(tokenResult.token); // Create a session on the server
+
+          // Fetch the user profile based on admin claim
+          const isAdmin = tokenResult.claims.admin === true;
+          const profile = isAdmin
+            ? await getStaffById(user.uid)
+            : await getResidentById(user.uid);
+
+          // Set user and profile together after everything succeeds
+          setUser(user);
+          setUserProfile(profile);
         } catch (error) {
-          console.error('Error creating session:', error);
-          // If session creation fails, sign out to keep frontend/backend in sync
+          console.error('Error during login flow:', error);
+          // Sign out to keep frontend/backend in sync
           await signOut(auth);
         }
-
-        router.refresh(); // After session is created, refresh the router to run the middleware for redirection
       } else {
-        // Destroy the session on the server FIRST before setting user to null
         try {
-          await logoutAction();
+          await logoutAction(); // Destroy the session on the server
+          setUser(null);
+          setUserProfile(null);
         } catch (error) {
           console.error('Error destroying session - forcing reload:', error);
           window.location.href = '/'; // Force reload to rerun useEffect and destroy session on the server
         }
-
-        // Only set user to null after confirming session was deleted
-        setUser(null);
-        router.refresh();
       }
+
+      router.refresh(); // After session is created or destroyed, refresh the router to run the middleware for redirection
     });
 
     return () => unsubscribe();
@@ -86,7 +94,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loginResident, loginStaff, signupResident, logout }}>
+    <AuthContext.Provider value={{ user, userProfile, loginResident, loginStaff, signupResident, logout }}>
       {children}
     </AuthContext.Provider>
   );

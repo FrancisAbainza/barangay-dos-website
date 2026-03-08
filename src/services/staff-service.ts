@@ -1,7 +1,8 @@
 "use server";
 
 import { adminAuth, adminDb } from "@/lib/firebase/server";
-import { FieldValue } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { StaffProfile } from "@/types/user-profile";
 
 const STAFF_COLLECTION = 'staff';
 const staffDomain = "@staff.barangay-milagrosa.local";
@@ -33,6 +34,7 @@ export async function createStaff(
   const data = {
     fullName,
     idNumber,
+    role: 'Super Admin',
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   };
@@ -40,3 +42,21 @@ export async function createStaff(
   await docRef.set(data);
 }
 
+export async function getStaffById(userId: string): Promise<StaffProfile | null> {
+  const docRef = adminDb.collection(STAFF_COLLECTION).doc(userId);
+  const doc = await docRef.get();
+  
+  if (!doc.exists) {
+    return null;
+  }
+
+  const data = doc.data()!;
+  return {
+    uid: doc.id,
+    fullName: data.fullName ?? null,
+    idNumber: data.idNumber ?? null,
+    role: data.role,
+    createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
+    updatedAt: (data.updatedAt as Timestamp).toDate().toISOString(),
+  };
+}
