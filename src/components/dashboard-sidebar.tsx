@@ -16,7 +16,6 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import { ResidentProfile, StaffProfile } from "@/types/user-profile";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -69,9 +68,6 @@ export default function DashboardSidebar({ variant }: DashboardSidebarProps) {
   const { user, userProfile, logout } = useAuth();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-
-  const staffProfile = variant === "staff" ? (userProfile as StaffProfile) : null;
-  const residentProfile = variant === "resident" ? (userProfile as ResidentProfile) : null;
 
   return (
     <>
@@ -162,7 +158,7 @@ export default function DashboardSidebar({ variant }: DashboardSidebarProps) {
                     {userProfile?.fullName ?? "User"}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {staffProfile?.idNumber ?? residentProfile?.email ?? "—"}
+                    {userProfile?.email ?? "—"}
                   </p>
                 </div>
               </div>

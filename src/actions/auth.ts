@@ -22,3 +22,13 @@ export async function logoutAction() {
     path: "/",
   });
 }
+
+/// Returns true/false based on the admin claim, or null if the user doesn't exist.
+export async function checkIsAdminAction(email: string): Promise<boolean | null> {
+  try {
+    const userRecord = await adminAuth.getUserByEmail(email);
+    return userRecord.customClaims?.admin === true;
+  } catch {
+    return null;
+  }
+}

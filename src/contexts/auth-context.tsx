@@ -4,41 +4,41 @@ import { auth } from "@/lib/firebase/client";
 import { createUserWithEmailAndPassword, onIdTokenChanged, signInWithEmailAndPassword, signOut, User } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
-import { loginAction, logoutAction } from "@/actions/auth";
-import { createResident, getResidentById } from "@/services/residents-service";
-import { ResidentProfile, StaffProfile } from "@/types/user-profile";
-import { getStaffById } from "@/services/staff-service";
+import { loginAction, logoutAction, checkIsAdminAction } from "@/actions/auth";
+import { createResident, getUserById } from "@/services/user-service";
+import { UserProfile } from "@/types/user-profile";
 
 interface AuthContextType {
   user: User | null;
-  userProfile: ResidentProfile | StaffProfile | null;
+  userProfile: UserProfile | null;
   loginResident: (email: string, password: string) => Promise<void>;
-  loginStaff: (idNumber: string, password: string) => Promise<void>;
-  signupResident: (email: string, password: string, fullName: string) => Promise<void>;
+  loginStaff: (email: string, password: string) => Promise<void>;
+  signupResident: (fullName: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-const staffDomain = "@staff.barangay-milagrosa.local";
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<ResidentProfile | StaffProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const router = useRouter();
 
   /*
-  If the resident logs in: 
+  If the user logs in: 
   1. Save the session cookie via server actions 
   2. Set the user in state
-  3. Refresh the router to run the middleware for redirection
+  3. Fetch and set the user profile in state
+  4. Refresh the router to run the middleware for redirection
 
-  If the resident or staff logs out:
+  If the user logs out:
   1. Delete the session cookie via server actions
   2. Then set the user in state to null
   3. Refresh the router to run the middleware for redirection
   */
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
+      console.log("Auth state changed. User:", user);
       if (user) {
         try {
           const tokenResult = await user.getIdTokenResult();
@@ -46,9 +46,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
           // Fetch the user profile based on admin claim
           const isAdmin = tokenResult.claims.admin === true;
-          const profile = isAdmin
-            ? await getStaffById(user.uid)
-            : await getResidentById(user.uid);
+          const profile = await getUserById(user.uid, isAdmin);
 
           // Set user and profile together after everything succeeds
           setUser(user);
@@ -76,18 +74,21 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }, [router]);
 
   const loginResident = async (email: string, password: string) => {
+    const isAdmin = await checkIsAdminAction(email);
+    if (isAdmin === true) throw new Error('This is a staff account. Please use the staff login.');
     await signInWithEmailAndPassword(auth, email, password);
-  }
+  };
 
-  const loginStaff = async (idNumber: string, password: string) => {
-    const syntheticEmail = `${idNumber}${staffDomain}`;
-    await signInWithEmailAndPassword(auth, syntheticEmail, password);
-  }
+  const loginStaff = async (email: string, password: string) => {
+    const isAdmin = await checkIsAdminAction(email);
+    if (isAdmin === false) throw new Error('This is a resident account. Please use the resident login.');
+    await signInWithEmailAndPassword(auth, email, password);
+  };
 
-  const signupResident = async (email: string, password: string, fullName: string) => {
+  const signupResident = async (fullName: string, email: string, password: string) => {
     const { user } = await createUserWithEmailAndPassword(auth, email, password);
     await createResident(user.uid, fullName, email);
-  }
+  };
 
   const logout = async () => {
     await signOut(auth);

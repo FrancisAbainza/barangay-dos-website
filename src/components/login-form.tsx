@@ -7,30 +7,32 @@ import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import { StaffSignupFormValues, staffSignupSchema } from '@/schemas/staff-auth-schema';
-import { signupStaff } from '@/services/staff-service';
+import { LoginFormValues, loginSchema } from '@/schemas/auth-schema';
 
-export function StaffSignupForm({ onSuccess }: { onSuccess?: () => void }) {
+interface LoginFormProps {
+  onLogin: (email: string, password: string) => Promise<void>;
+  onSuccess?: () => void;
+}
+
+export function LoginForm({ onLogin, onSuccess }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<StaffSignupFormValues>({
-    resolver: zodResolver(staffSignupSchema),
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      fullName: '',
-      idNumber: '',
+      email: '',
       password: '',
-      confirmPassword: '',
     },
   });
 
-  async function onSubmit(values: StaffSignupFormValues) {
+  async function onSubmit(values: LoginFormValues) {
     setError(null);
 
     try {
-      await signupStaff(values.idNumber, values.password, values.fullName);
+      await onLogin(values.email, values.password);
       onSuccess?.();
     } catch (err: any) {
-      setError(err.message || 'Failed to create account. Please try again.');
+      setError(err.message || 'Failed to login. Please check your credentials.');
     }
   }
 
@@ -43,35 +45,17 @@ export function StaffSignupForm({ onSuccess }: { onSuccess?: () => void }) {
       )}
       <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
         <Controller
-          name="fullName"
+          name="email"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Full Name</FieldLabel>
+              <FieldLabel htmlFor={field.name}>Email</FieldLabel>
               <Input
                 {...field}
                 id={field.name}
-                type="text"
+                type="email"
                 aria-invalid={fieldState.invalid}
-                placeholder="Enter your full name"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-
-        <Controller
-          name="idNumber"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>ID Number</FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                type="text"
-                aria-invalid={fieldState.invalid}
-                placeholder="Enter your ID number"
+                placeholder="Enter your email"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -89,25 +73,7 @@ export function StaffSignupForm({ onSuccess }: { onSuccess?: () => void }) {
                 id={field.name}
                 type="password"
                 aria-invalid={fieldState.invalid}
-                placeholder="Create a password"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-
-        <Controller
-          name="confirmPassword"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                type="password"
-                aria-invalid={fieldState.invalid}
-                placeholder="Confirm your password"
+                placeholder="Enter your password"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -118,10 +84,10 @@ export function StaffSignupForm({ onSuccess }: { onSuccess?: () => void }) {
           {form.formState.isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating account...
+              Logging in...
             </>
           ) : (
-            'Create Account'
+            'Login'
           )}
         </Button>
       </fieldset>

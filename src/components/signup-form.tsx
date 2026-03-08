@@ -3,44 +3,67 @@
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import { ResidentLoginFormValues, residentLoginSchema } from '@/schemas/resident-auth-schema';
+import { SignupFormValues, signupSchema } from '@/schemas/auth-schema';
 
-export function ResidentLoginForm({ onSuccess }: { onSuccess?: () => void }) {
+interface SignupFormProps {
+  onSubmit: (fullName: string, email: string, password: string) => Promise<void>;
+  onSuccess?: () => void;
+}
+
+export function SignupForm({ onSubmit, onSuccess }: SignupFormProps) {
   const [error, setError] = useState<string | null>(null);
-  const { loginResident } = useAuth();
 
-  const form = useForm<ResidentLoginFormValues>({
-    resolver: zodResolver(residentLoginSchema),
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
     defaultValues: {
+      fullName: '',
       email: '',
       password: '',
+      confirmPassword: '',
     },
   });
 
-  async function onSubmit(values: ResidentLoginFormValues) {
+  async function handleSubmit(values: SignupFormValues) {
     setError(null);
 
     try {
-      await loginResident(values.email, values.password);
+      await onSubmit(values.fullName, values.email, values.password);
       onSuccess?.();
     } catch (err: any) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
+      setError(err.message || 'Failed to create account. Please try again.');
     }
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
+    <form onSubmit={form.handleSubmit(handleSubmit)}>
       {error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}
         </div>
       )}
       <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
+        <Controller
+          name="fullName"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Full Name</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="text"
+                aria-invalid={fieldState.invalid}
+                placeholder="Enter your full name"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
         <Controller
           name="email"
           control={form.control}
@@ -70,7 +93,25 @@ export function ResidentLoginForm({ onSuccess }: { onSuccess?: () => void }) {
                 id={field.name}
                 type="password"
                 aria-invalid={fieldState.invalid}
-                placeholder="Enter your password"
+                placeholder="Create a password"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+
+        <Controller
+          name="confirmPassword"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
+              <Input
+                {...field}
+                id={field.name}
+                type="password"
+                aria-invalid={fieldState.invalid}
+                placeholder="Confirm your password"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
@@ -81,10 +122,10 @@ export function ResidentLoginForm({ onSuccess }: { onSuccess?: () => void }) {
           {form.formState.isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Logging in...
+              Creating account...
             </>
           ) : (
-            'Login'
+            'Create Account'
           )}
         </Button>
       </fieldset>

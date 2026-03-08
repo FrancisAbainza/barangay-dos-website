@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ResidentLoginForm } from "./resident-login-form";
-import { ResidentSignupForm } from "./resident-signup-form";
+import { LoginForm } from "./login-form";
+import { SignupForm } from "./signup-form";
+import { useAuth } from "@/contexts/auth-context";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -17,6 +18,7 @@ import { User } from "lucide-react";
 export default function ResidentAuthButton() {
   const [open, setOpen] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
+  const { signupResident, loginResident } = useAuth();
 
   function handleOpenChange(value: boolean) {
     setOpen(value);
@@ -44,9 +46,9 @@ export default function ResidentAuthButton() {
           </DialogDescription>
         </DialogHeader>
         {isSignup ? (
-          <ResidentSignupForm onSuccess={() => handleOpenChange(false)} />
+          <SignupForm onSubmit={signupResident} onSuccess={() => handleOpenChange(false)} />
         ) : (
-          <ResidentLoginForm onSuccess={() => handleOpenChange(false)} />
+          <LoginForm onLogin={loginResident} onSuccess={() => handleOpenChange(false)} />
         )}
         <p className="text-center text-sm text-muted-foreground">
           {isSignup ? (

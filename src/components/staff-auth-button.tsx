@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { StaffLoginForm } from "./staff-login-form";
-import { StaffSignupForm } from "./staff-signup-form";
+import { LoginForm } from "./login-form";
+import { SignupForm } from "./signup-form";
+import { signupStaff } from "@/services/user-service";
+import { useAuth } from "@/contexts/auth-context";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -17,6 +19,7 @@ import { UserCog } from "lucide-react";
 export default function StaffAuthButton() {
   const [open, setOpen] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
+  const { loginStaff } = useAuth();
 
   function handleOpenChange(value: boolean) {
     setOpen(value);
@@ -44,9 +47,9 @@ export default function StaffAuthButton() {
           </DialogDescription>
         </DialogHeader>
         {isSignup ? (
-          <StaffSignupForm onSuccess={() => handleOpenChange(false)} />
+          <SignupForm onSubmit={signupStaff} onSuccess={() => handleOpenChange(false)} />
         ) : (
-          <StaffLoginForm onSuccess={() => handleOpenChange(false)} />
+          <LoginForm onLogin={loginStaff} onSuccess={() => handleOpenChange(false)} />
         )}
         <p className="text-center text-sm text-muted-foreground">
           {isSignup ? (
