@@ -6,7 +6,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 export default function ResidentLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen>
-      <DashboardSidebar variant="resident" />
+      <DashboardSidebar />
       <SidebarInset className="flex flex-1 flex-col overflow-y-auto">
         <DashboardHeader />
         <main className="pt-16">

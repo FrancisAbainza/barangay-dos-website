@@ -14,6 +14,7 @@ import {
   Info,
   LogOut,
   ChevronsUpDown,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ const residentMenuItems = [
   { title: "About Us", href: "/resident/about-us", icon: Info },
 ];
 
-const staffMenuItems = [
+const adminMenuItems = [
   { title: "Home", href: "/staff", icon: Home },
   { title: "Announcements", href: "/staff/announcements", icon: Megaphone },
   { title: "Document Request", href: "/staff/document-request", icon: FileText },
@@ -56,14 +57,16 @@ const staffMenuItems = [
   { title: "Tanod Tracking", href: "/staff/tanod-tracking", icon: Navigation },
   { title: "Surveillance (Tentative)", href: "/staff/surveillance", icon: Camera },
   { title: "About Us", href: "/staff/about-us", icon: Info },
+  { title: "User Management", href: "/staff/user-management", icon: Users },
 ];
 
+const tanodMenuItems = [
+  { title: "Home", href: "/staff", icon: Home },
+  { title: "Tanod Tracking", href: "/staff/tanod-tracking", icon: Navigation },
+  { title: "Surveillance (Tentative)", href: "/staff/surveillance", icon: Camera },
+]
 
-interface DashboardSidebarProps {
-  variant: "staff" | "resident";
-}
-
-export default function DashboardSidebar({ variant }: DashboardSidebarProps) {
+export default function DashboardSidebar() {
   const pathname = usePathname();
   const { user, userProfile, logout } = useAuth();
   const { state } = useSidebar();
@@ -90,12 +93,13 @@ export default function DashboardSidebar({ variant }: DashboardSidebarProps) {
         {/* Navigation */}
         <SidebarContent>
           <SidebarMenu className="p-2">
-            {(variant === "resident" ? residentMenuItems : staffMenuItems).map((item) => {
+            {(
+              userProfile?.role === "Resident" ? residentMenuItems :
+              userProfile?.role === "Tanod" ? tanodMenuItems :
+              adminMenuItems
+            ).map((item) => {
               const Icon = item.icon;
-              const isActive =
-                pathname === item.href ||
-                (item.href !== "/resident" &&
-                  pathname.startsWith(item.href + "/"));
+              const isActive = pathname === item.href;
 
               return (
                 <SidebarMenuItem key={item.href}>
