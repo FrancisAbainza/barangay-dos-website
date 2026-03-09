@@ -16,6 +16,7 @@ import {
 import { createStaffSchema, CreateStaffFormValues } from '@/schemas/auth-schema';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TablePagination } from '@/components/table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
@@ -69,6 +70,7 @@ import {
   Loader2,
   Users,
   UserCog,
+  Search,
 } from 'lucide-react';
 
 interface UserManagementDashboardProps {
@@ -93,8 +95,38 @@ export function UserManagementDashboard({
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [residentsPage, setResidentsPage] = useState(1);
+  const [staffPage, setStaffPage] = useState(1);
+
+  const PAGE_SIZE = 10;
 
   const isSuperAdmin = userProfile?.role === 'Super Admin';
+
+  const searchLower = search.toLowerCase();
+  const filteredResidents = initialResidents.filter(
+    (r) =>
+      r.uid.toLowerCase().includes(searchLower) ||
+      (r.fullName ?? '').toLowerCase().includes(searchLower) ||
+      (r.email ?? '').toLowerCase().includes(searchLower)
+  );
+  const filteredStaff = initialStaff.filter(
+    (s) =>
+      s.uid.toLowerCase().includes(searchLower) ||
+      (s.fullName ?? '').toLowerCase().includes(searchLower) ||
+      (s.email ?? '').toLowerCase().includes(searchLower)
+  );
+
+  const residentsTotalPages = Math.max(1, Math.ceil(filteredResidents.length / PAGE_SIZE));
+  const staffTotalPages = Math.max(1, Math.ceil(filteredStaff.length / PAGE_SIZE));
+  const paginatedResidents = filteredResidents.slice(
+    (residentsPage - 1) * PAGE_SIZE,
+    residentsPage * PAGE_SIZE
+  );
+  const paginatedStaff = filteredStaff.slice(
+    (staffPage - 1) * PAGE_SIZE,
+    staffPage * PAGE_SIZE
+  );
 
   // --- Create Staff Form ---
   const form = useForm<CreateStaffFormValues>({
@@ -261,6 +293,21 @@ export function UserManagementDashboard({
           </TabsTrigger>
         </TabsList>
 
+        {/* Search Bar */}
+        <div className="relative mt-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, email, or user ID…"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setResidentsPage(1);
+              setStaffPage(1);
+            }}
+            className="pl-9"
+          />
+        </div>
+
         {/* Residents Tab */}
         <TabsContent value="residents" className="mt-4">
           <div className="rounded-lg border bg-card">
@@ -275,14 +322,14 @@ export function UserManagementDashboard({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {initialResidents.length === 0 ? (
+                {filteredResidents.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground py-10">
-                      No resident accounts found.
+                      {search ? 'No residents match your search.' : 'No resident accounts found.'}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  initialResidents.map((resident) => (
+                  paginatedResidents.map((resident) => (
                     <TableRow key={resident.uid}>
                       <TableCell className="font-medium">
                         {resident.fullName ?? '—'}
@@ -346,6 +393,16 @@ export function UserManagementDashboard({
               </TableBody>
             </Table>
           </div>
+          {filteredResidents.length > 0 && (
+            <TablePagination
+              page={residentsPage}
+              totalPages={residentsTotalPages}
+              pageSize={PAGE_SIZE}
+              totalItems={filteredResidents.length}
+              itemLabel="residents"
+              onPageChange={setResidentsPage}
+            />
+          )}
         </TabsContent>
 
         {/* Staff Tab */}
@@ -362,17 +419,17 @@ export function UserManagementDashboard({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {initialStaff.length === 0 ? (
+                {filteredStaff.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={isSuperAdmin ? 5 : 4}
                       className="text-center text-muted-foreground py-10"
                     >
-                      No staff accounts found.
+                      {search ? 'No staff match your search.' : 'No staff accounts found.'}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  initialStaff.map((staff) => (
+                  paginatedStaff.map((staff) => (
                     <TableRow key={staff.uid}>
                       <TableCell className="font-medium">
                         {staff.fullName ?? '—'}
@@ -423,6 +480,16 @@ export function UserManagementDashboard({
               </TableBody>
             </Table>
           </div>
+          {filteredStaff.length > 0 && (
+            <TablePagination
+              page={staffPage}
+              totalPages={staffTotalPages}
+              pageSize={PAGE_SIZE}
+              totalItems={filteredStaff.length}
+              itemLabel="staff"
+              onPageChange={setStaffPage}
+            />
+          )}
         </TabsContent>
       </Tabs>
 
