@@ -15,6 +15,7 @@ import {
 } from '@/services/user-service';
 import { createStaffSchema, CreateStaffFormValues } from '@/schemas/auth-schema';
 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
@@ -193,11 +194,16 @@ export function UserManagementDashboard({
     <div className="container space-y-6 m-auto">
       {/* Page Header */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage resident and staff accounts.
-          </p>
+        <div className='flex items-center gap-3'>
+          <div className="bg-accent text-primary p-2 rounded-md">
+            <Users />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage resident and staff accounts.
+            </p>
+          </div>
         </div>
         {isSuperAdmin && (
           <Button onClick={handleOpenCreateDialog} className="gap-2">
@@ -205,6 +211,34 @@ export function UserManagementDashboard({
             Add Staff Account
           </Button>
         )}
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Users className="size-4" />
+              Total Residents
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{initialResidents.length}</p>
+            <p className="text-muted-foreground text-xs">All residents</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <UserCog className="size-4" />
+              Total Staff
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{initialStaff.length}</p>
+            <p className="text-muted-foreground text-xs">All staff members</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Global Error */}
@@ -220,16 +254,10 @@ export function UserManagementDashboard({
           <TabsTrigger value="residents" className="gap-2">
             <Users className="size-4" />
             Residents
-            <Badge variant="secondary" className="ml-1">
-              {initialResidents.length}
-            </Badge>
           </TabsTrigger>
           <TabsTrigger value="staff" className="gap-2">
             <UserCog className="size-4" />
             Staff
-            <Badge variant="secondary" className="ml-1">
-              {initialStaff.length}
-            </Badge>
           </TabsTrigger>
         </TabsList>
 
