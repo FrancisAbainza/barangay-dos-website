@@ -33,8 +33,8 @@ export function SignupForm({ onSubmit, onSuccess }: SignupFormProps) {
     try {
       await onSubmit(values.fullName, values.email, values.password);
       onSuccess?.();
-    } catch (err: any) {
-      setError(err.message || 'Failed to create account. Please try again.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create account. Please try again.');
     }
   }
 

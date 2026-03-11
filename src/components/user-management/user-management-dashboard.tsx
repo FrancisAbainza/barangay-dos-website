@@ -146,8 +146,8 @@ export function UserManagementDashboard({
       await createStaff(values.fullName, values.email, values.password, values.role);
       setShowCreateDialog(false);
       startTransition(() => router.refresh());
-    } catch (err: any) {
-      setActionError(err.message ?? 'Failed to create staff account. Please try again.');
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : 'Failed to create staff account. Please try again.');
     }
   }
 
@@ -174,8 +174,8 @@ export function UserManagementDashboard({
         }
         setConfirmAction(null);
         router.refresh();
-      } catch (err: any) {
-        setActionError(err.message ?? 'An error occurred. Please try again.');
+      } catch (err: unknown) {
+        setActionError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
         setConfirmAction(null);
       }
     });

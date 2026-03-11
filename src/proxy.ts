@@ -10,7 +10,7 @@ function getSessionClaims(session: string): Record<string, unknown> | null {
   }
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const session = request.cookies.get("__session")?.value;
   const { pathname } = request.nextUrl;
 

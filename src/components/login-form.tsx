@@ -31,8 +31,8 @@ export function LoginForm({ onLogin, onSuccess }: LoginFormProps) {
     try {
       await onLogin(values.email, values.password);
       onSuccess?.();
-    } catch (err: any) {
-      setError(err.message || 'Failed to login. Please check your credentials.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to login. Please check your credentials.');
     }
   }
 
