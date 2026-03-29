@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { adminAuth, adminDb } from "@/lib/firebase/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { UserProfile } from "@/types/user-profile";
@@ -44,6 +45,7 @@ export async function createStaff(fullName: string, email: string, password: str
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   });
+  revalidatePath('/staff/user-management');
 }
 
 export async function getUserById(userId: string, isAdmin: boolean): Promise<UserProfile | null> {
@@ -72,6 +74,7 @@ export async function banResident(userId: string): Promise<void> {
     }),
     adminAuth.updateUser(userId, { disabled: true }),
   ]);
+  revalidatePath('/staff/user-management');
 }
 
 export async function unbanResident(userId: string): Promise<void> {
@@ -82,6 +85,7 @@ export async function unbanResident(userId: string): Promise<void> {
     }),
     adminAuth.updateUser(userId, { disabled: false }),
   ]);
+  revalidatePath('/staff/user-management');
 }
 
 export async function deleteResident(userId: string): Promise<void> {
@@ -89,6 +93,7 @@ export async function deleteResident(userId: string): Promise<void> {
     adminDb.collection(RESIDENTS_COLLECTION).doc(userId).delete(),
     adminAuth.deleteUser(userId),
   ]);
+  revalidatePath('/staff/user-management');
 }
 
 export async function deleteStaff(userId: string): Promise<void> {
@@ -96,4 +101,5 @@ export async function deleteStaff(userId: string): Promise<void> {
     adminDb.collection(STAFF_COLLECTION).doc(userId).delete(),
     adminAuth.deleteUser(userId),
   ]);
+  revalidatePath('/staff/user-management');
 }
