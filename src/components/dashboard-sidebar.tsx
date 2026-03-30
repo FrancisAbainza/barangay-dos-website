@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronsUpDown,
   Users,
+  User,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -168,6 +169,16 @@ export default function DashboardSidebar() {
               </div>
               <Separator />
               <div className="p-1">
+                <Button
+                  variant="ghost"
+                  asChild
+                  className="w-full justify-start gap-2"
+                >
+                  <Link href="/profile">
+                    <User className="h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
+                </Button>
                 <Button
                   variant="ghost"
                   onClick={logout}

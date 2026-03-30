@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { adminAuth, adminDb } from "@/lib/firebase/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import { UserProfile } from "@/types/user-profile";
+import { UserProfile } from "@/schemas/profile-schema";
 
 const RESIDENTS_COLLECTION = 'residents';
 const STAFF_COLLECTION = 'staff';

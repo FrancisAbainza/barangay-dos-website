@@ -33,20 +33,20 @@ interface CreateStaffDialogProps {
 export function CreateStaffDialog({ open, onOpenChange, onSuccess }: CreateStaffDialogProps) {
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const form = useForm<CreateStaffFormValues>({
+  const { register, control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<CreateStaffFormValues>({
     resolver: zodResolver(createStaffSchema),
     defaultValues: { fullName: '', email: '', role: 'Admin', password: '', confirmPassword: '' },
   });
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
-      form.reset();
+      reset();
       setActionError(null);
     }
     onOpenChange(nextOpen);
   }
 
-  async function handleSubmit(values: CreateStaffFormValues) {
+  async function onSubmit(values: CreateStaffFormValues) {
     setActionError(null);
     try {
       await createStaff(values.fullName, values.email, values.password, values.role);
@@ -70,41 +70,29 @@ export function CreateStaffDialog({ open, onOpenChange, onSuccess }: CreateStaff
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 mt-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
           {actionError && (
             <div className="rounded-md bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
               {actionError}
             </div>
           )}
 
-          <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
-            <Controller
-              name="fullName"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Full Name</FieldLabel>
-                  <Input {...field} id={field.name} placeholder="Enter full name" />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+          <fieldset disabled={isSubmitting} className="space-y-4">
+            <Field data-invalid={!!errors.fullName}>
+              <FieldLabel htmlFor="fullName">Full Name</FieldLabel>
+              <Input {...register('fullName')} id="fullName" placeholder="Enter full name" />
+              <FieldError errors={[errors.fullName]} />
+            </Field>
 
-            <Controller
-              name="email"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                  <Input {...field} id={field.name} type="email" placeholder="Enter email address" />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+            <Field data-invalid={!!errors.email}>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <Input {...register('email')} id="email" type="email" placeholder="Enter email address" />
+              <FieldError errors={[errors.email]} />
+            </Field>
 
             <Controller
               name="role"
-              control={form.control}
+              control={control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>Role</FieldLabel>
@@ -118,46 +106,34 @@ export function CreateStaffDialog({ open, onOpenChange, onSuccess }: CreateStaff
                       <SelectItem value="Tanod">Tanod</SelectItem>
                     </SelectContent>
                   </Select>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  <FieldError errors={[fieldState.error]} />
                 </Field>
               )}
             />
 
-            <Controller
-              name="password"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                  <Input {...field} id={field.name} type="password" placeholder="Min. 6 characters" />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+            <Field data-invalid={!!errors.password}>
+              <FieldLabel htmlFor="password">Password</FieldLabel>
+              <Input {...register('password')} id="password" type="password" placeholder="Min. 6 characters" />
+              <FieldError errors={[errors.password]} />
+            </Field>
 
-            <Controller
-              name="confirmPassword"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
-                  <Input {...field} id={field.name} type="password" placeholder="Re-enter password" />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+            <Field data-invalid={!!errors.confirmPassword}>
+              <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
+              <Input {...register('confirmPassword')} id="confirmPassword" type="password" placeholder="Re-enter password" />
+              <FieldError errors={[errors.confirmPassword]} />
+            </Field>
 
             <div className="flex justify-end gap-2 pt-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
-                disabled={form.formState.isSubmitting}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting} className="gap-2">
-                {form.formState.isSubmitting ? (
+              <Button type="submit" disabled={isSubmitting} className="gap-2">
+                {isSubmitting ? (
                   <>
                     <Loader2 className="size-4 animate-spin" />
                     Creating...

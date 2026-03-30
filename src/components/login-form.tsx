@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldLabel } from '@/components/ui/field';
@@ -17,7 +17,7 @@ interface LoginFormProps {
 export function LoginForm({ onLogin, onSuccess }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<LoginFormValues>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: '',
@@ -37,51 +37,39 @@ export function LoginForm({ onLogin, onSuccess }: LoginFormProps) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       {error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
           {error}
         </div>
       )}
-      <fieldset disabled={form.formState.isSubmitting} className="space-y-4">
-        <Controller
-          name="email"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                type="email"
-                aria-invalid={fieldState.invalid}
-                placeholder="Enter your email"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+      <fieldset disabled={isSubmitting} className="space-y-4">
+        <Field data-invalid={!!errors.email}>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            {...register('email')}
+            id="email"
+            type="email"
+            aria-invalid={!!errors.email}
+            placeholder="Enter your email"
+          />
+          <FieldError errors={[errors.email]} />
+        </Field>
 
-        <Controller
-          name="password"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                type="password"
-                aria-invalid={fieldState.invalid}
-                placeholder="Enter your password"
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+        <Field data-invalid={!!errors.password}>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <Input
+            {...register('password')}
+            id="password"
+            type="password"
+            aria-invalid={!!errors.password}
+            placeholder="Enter your password"
+          />
+          <FieldError errors={[errors.password]} />
+        </Field>
 
         <Button type="submit" className="w-full">
-          {form.formState.isSubmitting ? (
+          {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Logging in...
