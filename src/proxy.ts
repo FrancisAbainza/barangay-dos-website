@@ -34,7 +34,7 @@ export async function proxy(request: NextRequest) {
     }
   } else {
     // No session: redirect protected routes to home
-    if (pathname.startsWith('/resident') || pathname.startsWith('/staff')) {
+    if (pathname.startsWith('/resident') || pathname.startsWith('/staff') || pathname.startsWith('/profile')) {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
@@ -44,5 +44,5 @@ export async function proxy(request: NextRequest) {
 
 // Optimization: Only run middleware on these paths
 export const config = {
-  matcher: ['/resident/:path*', '/staff/:path*', '/'],
+  matcher: ['/resident/:path*', '/staff/:path*', '/', '/profile/:path*'],
 };

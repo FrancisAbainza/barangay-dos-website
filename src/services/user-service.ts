@@ -98,6 +98,14 @@ export async function deleteResident(userId: string): Promise<void> {
   revalidatePath('/staff/user-management');
 }
 
+export async function deleteUserAccount(userId: string, isAdmin: boolean): Promise<void> {
+  const collection = isAdmin ? STAFF_COLLECTION : RESIDENTS_COLLECTION;
+  await Promise.all([
+    adminDb.collection(collection).doc(userId).delete(),
+    adminAuth.deleteUser(userId),
+  ]);
+}
+
 export async function updateUserProfile(
   userId: string,
   isAdmin: boolean,
