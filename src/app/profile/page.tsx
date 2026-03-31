@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Mail, UserRound, ShieldCheck, CalendarDays } from "lucide-react";
-import EditProfileButton from "@/components/profile/edit-profile-button";
+import EditProfileDialog from "@/components/profile/edit-profile-dialog";
 import DeleteAccountButton from "@/components/profile/delete-account-button";
 
 export default function ProfilePage() {
@@ -48,7 +48,7 @@ export default function ProfilePage() {
               </Badge>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <EditProfileButton />
+              <EditProfileDialog />
               <DeleteAccountButton />
             </div>
           </div>

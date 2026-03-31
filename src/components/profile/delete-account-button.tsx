@@ -28,15 +28,13 @@ export default function DeleteAccountButton() {
 
     setIsPending(true);
     try {
-      const isAdmin = userProfile.role !== "Resident";
-
       // Delete profile picture from storage if one exists
       if (userProfile.profilePicture && userProfile.profilePicture.length > 0) {
         await deleteImagesByPath(userProfile.profilePicture);
       }
 
       // Delete Firestore document and Firebase Auth user
-      await deleteUserAccount(user.uid, isAdmin);
+      await deleteUserAccount(user.uid);
 
       // Sign out the client session
       await logout();

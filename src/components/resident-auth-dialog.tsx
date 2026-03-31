@@ -15,17 +15,13 @@ import {
 } from "./ui/dialog";
 import { User } from "lucide-react";
 
-export default function ResidentAuthButton() {
+export default function ResidentAuthDialog() {
   const [open, setOpen] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
   const { signupResident, loginResident } = useAuth();
 
-  function handleOpenChange(value: boolean) {
-    setOpen(value);
-  }
-
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           size="lg"
@@ -46,9 +42,9 @@ export default function ResidentAuthButton() {
           </DialogDescription>
         </DialogHeader>
         {isSignup ? (
-          <SignupForm onSubmit={signupResident} onSuccess={() => handleOpenChange(false)} />
+          <SignupForm onSubmit={signupResident} onSuccess={() => setOpen(false)} />
         ) : (
-          <LoginForm onLogin={loginResident} onSuccess={() => handleOpenChange(false)} />
+          <LoginForm onLogin={loginResident} onSuccess={() => setOpen(false)} />
         )}
         <p className="text-center text-sm text-muted-foreground">
           {isSignup ? (

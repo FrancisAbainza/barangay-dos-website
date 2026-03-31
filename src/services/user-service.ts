@@ -6,8 +6,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import type { ImageItem } from "@/components/multi-image-uploader";
 import { UserProfile } from "@/schemas/profile-schema";
 
-const RESIDENTS_COLLECTION = 'residents';
-const STAFF_COLLECTION = 'staff';
+const USERS_COLLECTION = 'users';
 
 function docToProfile(doc: FirebaseFirestore.DocumentSnapshot): UserProfile {
   const data = doc.data()!;
@@ -24,7 +23,7 @@ function docToProfile(doc: FirebaseFirestore.DocumentSnapshot): UserProfile {
 }
 
 export async function createResident(userId: string, fullName: string, email: string) {
-  const docRef = adminDb.collection(RESIDENTS_COLLECTION).doc(userId);
+  const docRef = adminDb.collection(USERS_COLLECTION).doc(userId);
   await docRef.set({
     fullName,
     email,
@@ -38,7 +37,7 @@ export async function createResident(userId: string, fullName: string, email: st
 export async function createStaff(fullName: string, email: string, password: string, role: 'Admin' | 'Super Admin' | 'Tanod') {
   const userRecord = await adminAuth.createUser({ email, password });
   await adminAuth.setCustomUserClaims(userRecord.uid, { admin: true });
-  const docRef = adminDb.collection(STAFF_COLLECTION).doc(userRecord.uid);
+  const docRef = adminDb.collection(USERS_COLLECTION).doc(userRecord.uid);
   await docRef.set({
     fullName,
     email,
@@ -50,27 +49,26 @@ export async function createStaff(fullName: string, email: string, password: str
   revalidatePath('/staff/user-management');
 }
 
-export async function getUserById(userId: string, isAdmin: boolean): Promise<UserProfile | null> {
-  const collection = isAdmin ? STAFF_COLLECTION : RESIDENTS_COLLECTION;
-  const docRef = adminDb.collection(collection).doc(userId);
+export async function getUserById(userId: string): Promise<UserProfile | null> {
+  const docRef = adminDb.collection(USERS_COLLECTION).doc(userId);
   const doc = await docRef.get();
   if (!doc.exists) return null;
   return docToProfile(doc);
 }
 
 export async function getAllResidents(): Promise<UserProfile[]> {
-  const snapshot = await adminDb.collection(RESIDENTS_COLLECTION).orderBy('createdAt', 'desc').get();
+  const snapshot = await adminDb.collection(USERS_COLLECTION).where('role', '==', 'Resident').orderBy('createdAt', 'desc').get();
   return snapshot.docs.map(docToProfile);
 }
 
 export async function getAllStaff(): Promise<UserProfile[]> {
-  const snapshot = await adminDb.collection(STAFF_COLLECTION).orderBy('createdAt', 'desc').get();
+  const snapshot = await adminDb.collection(USERS_COLLECTION).where('role', 'in', ['Admin', 'Super Admin', 'Tanod']).orderBy('createdAt', 'desc').get();
   return snapshot.docs.map(docToProfile);
 }
 
 export async function banResident(userId: string): Promise<void> {
   await Promise.all([
-    adminDb.collection(RESIDENTS_COLLECTION).doc(userId).update({
+    adminDb.collection(USERS_COLLECTION).doc(userId).update({
       banned: true,
       updatedAt: FieldValue.serverTimestamp(),
     }),
@@ -81,7 +79,7 @@ export async function banResident(userId: string): Promise<void> {
 
 export async function unbanResident(userId: string): Promise<void> {
   await Promise.all([
-    adminDb.collection(RESIDENTS_COLLECTION).doc(userId).update({
+    adminDb.collection(USERS_COLLECTION).doc(userId).update({
       banned: false,
       updatedAt: FieldValue.serverTimestamp(),
     }),
@@ -92,27 +90,24 @@ export async function unbanResident(userId: string): Promise<void> {
 
 export async function deleteResident(userId: string): Promise<void> {
   await Promise.all([
-    adminDb.collection(RESIDENTS_COLLECTION).doc(userId).delete(),
+    adminDb.collection(USERS_COLLECTION).doc(userId).delete(),
     adminAuth.deleteUser(userId),
   ]);
   revalidatePath('/staff/user-management');
 }
 
-export async function deleteUserAccount(userId: string, isAdmin: boolean): Promise<void> {
-  const collection = isAdmin ? STAFF_COLLECTION : RESIDENTS_COLLECTION;
+export async function deleteUserAccount(userId: string): Promise<void> {
   await Promise.all([
-    adminDb.collection(collection).doc(userId).delete(),
+    adminDb.collection(USERS_COLLECTION).doc(userId).delete(),
     adminAuth.deleteUser(userId),
   ]);
 }
 
 export async function updateUserProfile(
   userId: string,
-  isAdmin: boolean,
   data: { fullName: string; profilePicture?: ImageItem }
 ): Promise<void> {
-  const collection = isAdmin ? STAFF_COLLECTION : RESIDENTS_COLLECTION;
-  await adminDb.collection(collection).doc(userId).update({
+  await adminDb.collection(USERS_COLLECTION).doc(userId).update({
     fullName: data.fullName,
     profilePicture: data.profilePicture ?? FieldValue.delete(),
     updatedAt: FieldValue.serverTimestamp(),
@@ -122,7 +117,7 @@ export async function updateUserProfile(
 
 export async function deleteStaff(userId: string): Promise<void> {
   await Promise.all([
-    adminDb.collection(STAFF_COLLECTION).doc(userId).delete(),
+    adminDb.collection(USERS_COLLECTION).doc(userId).delete(),
     adminAuth.deleteUser(userId),
   ]);
   revalidatePath('/staff/user-management');

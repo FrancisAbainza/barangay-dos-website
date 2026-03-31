@@ -24,7 +24,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
 import { updateUserProfile } from "@/services/user-service";
 
-export default function EditProfileButton() {
+export default function EditProfileDialog() {
   const [open, setOpen] = useState(false);
   const { user, userProfile, refreshUserProfile } = useAuth();
   const router = useRouter();
@@ -50,7 +50,6 @@ export default function EditProfileButton() {
     if (!user || !userProfile) return;
 
     try {
-      const isAdmin = userProfile.role !== "Resident";
       const { fullName, profilePicture = [] } = data;
 
       // Upload the selected picture to Firebase Storage.
@@ -62,7 +61,7 @@ export default function EditProfileButton() {
       // Persist the updated profile fields to Firestore.
       // uploadedPictures[0] is undefined when no picture was selected, which
       // causes updateUserProfile to remove the profilePicture field via FieldValue.delete().
-      await updateUserProfile(user.uid, isAdmin, { fullName, profilePicture: uploadedPictures[0] });
+      await updateUserProfile(user.uid, { fullName, profilePicture: uploadedPictures[0] });
 
       // Find pictures that existed before but are no longer in the uploaded set
       // (i.e. the user removed them), then delete them from Firebase Storage.

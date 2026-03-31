@@ -45,9 +45,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
           const tokenResult = await user.getIdTokenResult();
           await loginAction(tokenResult.token); // Create a session on the server
 
-          // Fetch the user profile based on admin claim
-          const isAdmin = tokenResult.claims.admin === true;
-          const profile = await getUserById(user.uid, isAdmin);
+          // Fetch the user profile
+          const profile = await getUserById(user.uid);
 
           // Set user and profile together after everything succeeds
           setUser(user);
@@ -98,9 +97,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const refreshUserProfile = async () => {
     if (!user) return;
     try {
-      const tokenResult = await user.getIdTokenResult();
-      const isAdmin = tokenResult.claims.admin === true;
-      const profile = await getUserById(user.uid, isAdmin);
+      const profile = await getUserById(user.uid);
       setUserProfile(profile);
     } catch (error) {
       console.error('Error refreshing user profile:', error);

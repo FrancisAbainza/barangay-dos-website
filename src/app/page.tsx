@@ -11,8 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import ResidentAuthButton from "@/components/resident-auth-button";
-import StaffAuthButton from "@/components/staff-auth-button";
+import ResidentAuthDialog from "@/components/resident-auth-dialog";
+import StaffAuthDialog from "@/components/staff-auth-dialog";
 import Image from "next/image";
 import logo from '../../public/logo.png';
 
@@ -112,8 +112,8 @@ export default function Home() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <ResidentAuthButton />
-            <StaffAuthButton />
+            <ResidentAuthDialog />
+            <StaffAuthDialog />
           </div>
         </div>
       </section>
