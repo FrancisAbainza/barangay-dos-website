@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,29 +16,71 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Field, FieldLabel, FieldError, FieldGroup } from "@/components/ui/field";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import MultiImageUploader from "@/components/multi-image-uploader";
 import { editProfileSchema, EditProfileFormValues } from "@/schemas/profile-schema";
 import { useAuth } from "@/contexts/auth-context";
+import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
+import { updateUserProfile } from "@/services/user-service";
 
 export default function EditProfileButton() {
   const [open, setOpen] = useState(false);
-  const { userProfile } = useAuth();
+  const { user, userProfile, refreshUserProfile } = useAuth();
+  const router = useRouter();
 
-  const { register, control, handleSubmit, formState: { errors, isSubmitting }, } = useForm<EditProfileFormValues>({
+  const { register, control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<EditProfileFormValues>({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
       fullName: userProfile?.fullName ?? "",
-      profilePicture: [],
+      profilePicture: userProfile?.profilePicture ?? [],
     },
   });
 
+  useEffect(() => {
+    if (open) {
+      reset({
+        fullName: userProfile?.fullName ?? "",
+        profilePicture: userProfile?.profilePicture ?? [],
+      });
+    }
+  }, [open, userProfile, reset]);
+
   const onSubmit = async (data: EditProfileFormValues) => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setOpen(false);
-    alert("Profile updated successfully!");
-    console.log("Form submitted with data:", data);
+    if (!user || !userProfile) return;
+
+    try {
+      const isAdmin = userProfile.role !== "Resident";
+      const { fullName, profilePicture = [] } = data;
+
+      // Upload the selected picture to Firebase Storage.
+      // - If the item already has a `path`, it's an existing upload and is returned as-is.
+      // - If the item's `uri` is a File, it gets uploaded and a download URL + path are returned.
+      // - If profilePicture is empty (user cleared it), this resolves to an empty array.
+      const uploadedPictures = await uploadMultiplePostImages(profilePicture, `profiles/${user.uid}`);
+
+      // Persist the updated profile fields to Firestore.
+      // uploadedPictures[0] is undefined when no picture was selected, which
+      // causes updateUserProfile to remove the profilePicture field via FieldValue.delete().
+      await updateUserProfile(user.uid, isAdmin, { fullName, profilePicture: uploadedPictures[0] });
+
+      // Find pictures that existed before but are no longer in the uploaded set
+      // (i.e. the user removed them), then delete them from Firebase Storage.
+      const picturesToDelete = (userProfile.profilePicture ?? []).filter(
+        (existing) => !uploadedPictures.some((uploaded) => uploaded.path === existing.path)
+      );
+      await deleteImagesByPath(picturesToDelete);
+
+      // Re-fetch the user profile so the UI reflects the saved changes immediately.
+      await refreshUserProfile();
+      // Re-run server components on the current page to sync server-rendered data.
+      router.refresh();
+      toast.success("Profile updated successfully!");
+      setOpen(false);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      toast.error("Failed to update profile. Please try again.");
+    }
   };
 
   return (

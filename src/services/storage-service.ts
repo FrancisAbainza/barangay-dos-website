@@ -4,7 +4,7 @@ import { storage } from "@/lib/firebase/client";
 import type { ImageItem } from "@/components/multi-image-uploader";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
-export const uploadMultiplePostImages = async (images: ImageItem[], collection: string, id: string) => {
+export const uploadMultiplePostImages = async (images: ImageItem[], basePath: string) => {
   const uploadPromises = images.map(async (image) => {
     if (!!image?.path) {
       // Image already uploaded
@@ -12,7 +12,7 @@ export const uploadMultiplePostImages = async (images: ImageItem[], collection: 
     }
 
     // 1. Create unique reference
-    const path = `${collection}/${id}/${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const path = `${basePath}/${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const storageRef = ref(storage, path);
 
     // 2. Upload

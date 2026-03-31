@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/auth-context";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +25,7 @@ export default function ProfilePage() {
         <CardHeader className="flex flex-row justify-between items-center pb-4">
           <div className="flex flex-row items-center gap-4">
             <Avatar className="h-16 w-16 text-xl">
+              <AvatarImage src={userProfile?.profilePicture?.[0]?.uri as string | undefined} />
               <AvatarFallback>
                 {userProfile?.fullName?.charAt(0).toUpperCase() ?? "U"}
               </AvatarFallback>

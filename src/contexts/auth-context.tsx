@@ -15,6 +15,7 @@ interface AuthContextType {
   loginStaff: (email: string, password: string) => Promise<void>;
   signupResident: (fullName: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -94,8 +95,20 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     await signOut(auth);
   };
 
+  const refreshUserProfile = async () => {
+    if (!user) return;
+    try {
+      const tokenResult = await user.getIdTokenResult();
+      const isAdmin = tokenResult.claims.admin === true;
+      const profile = await getUserById(user.uid, isAdmin);
+      setUserProfile(profile);
+    } catch (error) {
+      console.error('Error refreshing user profile:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, userProfile, loginResident, loginStaff, signupResident, logout }}>
+    <AuthContext.Provider value={{ user, userProfile, loginResident, loginStaff, signupResident, logout, refreshUserProfile }}>
       {children}
     </AuthContext.Provider>
   );

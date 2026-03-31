@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UserProfile } from '@/types/user-profile';
+import { UserProfile } from '@/schemas/profile-schema';
 import { ConfirmAction, formatDate } from './types';
 import {
   Table,

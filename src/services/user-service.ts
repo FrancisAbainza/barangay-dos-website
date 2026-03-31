@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { adminAuth, adminDb } from "@/lib/firebase/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import type { ImageItem } from "@/components/multi-image-uploader";
 import { UserProfile } from "@/schemas/profile-schema";
 
 const RESIDENTS_COLLECTION = 'residents';
@@ -16,6 +17,7 @@ function docToProfile(doc: FirebaseFirestore.DocumentSnapshot): UserProfile {
     email: data.email ?? null,
     role: data.role,
     banned: data.banned ?? false,
+    profilePicture: data.profilePicture ? [data.profilePicture] : [],
     createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
     updatedAt: (data.updatedAt as Timestamp).toDate().toISOString(),
   };
@@ -94,6 +96,20 @@ export async function deleteResident(userId: string): Promise<void> {
     adminAuth.deleteUser(userId),
   ]);
   revalidatePath('/staff/user-management');
+}
+
+export async function updateUserProfile(
+  userId: string,
+  isAdmin: boolean,
+  data: { fullName: string; profilePicture?: ImageItem }
+): Promise<void> {
+  const collection = isAdmin ? STAFF_COLLECTION : RESIDENTS_COLLECTION;
+  await adminDb.collection(collection).doc(userId).update({
+    fullName: data.fullName,
+    profilePicture: data.profilePicture ?? FieldValue.delete(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  revalidatePath('/profile');
 }
 
 export async function deleteStaff(userId: string): Promise<void> {
