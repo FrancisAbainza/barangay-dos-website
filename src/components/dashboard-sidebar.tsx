@@ -16,6 +16,7 @@ import {
   ChevronsUpDown,
   Users,
   User,
+  GraduationCap,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -38,9 +39,9 @@ import logo from '../../public/logo.png';
 
 const residentMenuItems = [
   { title: "Home", href: "/resident", icon: Home },
-  { title: "Announcements", href: "/resident/announcements", icon: Megaphone },
+  { title: "News", href: "/resident/news", icon: Megaphone },
   { title: "Document Request", href: "/resident/document-request", icon: FileText },
-  { title: "Court Reservations", href: "/resident/court-reservations", icon: CalendarCheck },
+  { title: "Scholarships", href: "/resident/scholarships", icon: GraduationCap },
   { title: "Complaint", href: "/resident/complaint", icon: MessageSquareWarning },
   { title: "Transparency", href: "/resident/transparency", icon: Eye },
   { title: "Tanod Tracking", href: "/resident/tanod-tracking", icon: Navigation },
@@ -50,9 +51,9 @@ const residentMenuItems = [
 
 const adminMenuItems = [
   { title: "Home", href: "/staff", icon: Home },
-  { title: "Announcements", href: "/staff/announcements", icon: Megaphone },
+  { title: "News", href: "/staff/news", icon: Megaphone },
   { title: "Document Request", href: "/staff/document-request", icon: FileText },
-  { title: "Court Reservations", href: "/staff/court-reservations", icon: CalendarCheck },
+  { title: "Scholarships", href: "/staff/scholarships", icon: GraduationCap },
   { title: "Complaint", href: "/staff/complaint", icon: MessageSquareWarning },
   { title: "Transparency", href: "/staff/transparency", icon: Eye },
   { title: "Tanod Tracking", href: "/staff/tanod-tracking", icon: Navigation },
