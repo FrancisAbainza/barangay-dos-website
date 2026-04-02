@@ -8,6 +8,7 @@ import EditHeaderDialog from "@/components/about-us/edit-header-dialog";
 import AddOfficialDialog from "@/components/about-us/add-official-dialog";
 import EditOfficialDialog from "@/components/about-us/edit-official-dialog";
 import DeleteOfficialDialog from "@/components/about-us/delete-official-dialog";
+import { getBarangayProfile } from "@/services/about-us-service";
 
 interface Official {
   name: string;
@@ -29,19 +30,12 @@ const barangayOfficials: Official[] = [
   { name: "Rodrigo Aquino", position: "Treasurer" },
 ];
 
-interface BarangayProfile {
-  name: string;
-  address: string;
-  tagline: string;
-  logoSrc: string;
-}
-
-const barangayProfile: BarangayProfile = {
+// Fallback values shown when the database has no profile document yet.
+const PROFILE_FALLBACK = {
   name: "Barangay Milagrosa",
   address: "District 2, Quezon City, Metro Manila",
   tagline:
     "Dedicated to serving every resident of Barangay Milagrosa with transparency, compassion, and excellence in public service.",
-  logoSrc: "/logo.png",
 };
 
 const skOfficials: Official[] = [
@@ -83,14 +77,13 @@ function OfficialsSection({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative size-10 shrink-0 overflow-hidden rounded-full border bg-white">
-              <Image
-                src={logoSrc}
-                alt={`${title} logo`}
-                fill
-                className="object-contain p-0.5"
-              />
-            </div>
+            <Image
+              src={logoSrc}
+              alt={`${title} logo`}
+              width={60}
+              height={60}
+              className="shrink-0 object-contain"
+            />
             <div>
               <CardTitle className="text-lg">{title}</CardTitle>
               <p className="text-xs text-muted-foreground">
@@ -159,7 +152,18 @@ function OfficialsSection({
   );
 }
 
-export default function AboutUsPage() {
+export default async function AboutUsPage() {
+  // Fetch the barangay profile from Firestore.
+  // Falls back to hardcoded defaults when no document exists yet.
+  const profile = await getBarangayProfile();
+  const barangayProfile = {
+    name: profile?.name || PROFILE_FALLBACK.name,
+    address: profile?.address || PROFILE_FALLBACK.address,
+    tagline: profile?.tagline || PROFILE_FALLBACK.tagline,
+    barangayLogo: profile?.barangayLogo,
+    skLogo: profile?.skLogo,
+  };
+
   return (
     <div className="container space-y-6">
       {/* Page Header */}
@@ -180,14 +184,17 @@ export default function AboutUsPage() {
         <div className="bg-primary p-6 text-primary-foreground">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
-              <div className="relative size-16 shrink-0 overflow-hidden rounded-full border-2 border-primary-foreground/30 bg-white">
-                <Image
-                  src={barangayProfile.logoSrc}
-                  alt="Barangay Milagrosa logo"
-                  fill
-                  className="object-contain p-1"
-                />
-              </div>
+              <Image
+                src={
+                  typeof barangayProfile.barangayLogo?.uri === "string"
+                    ? barangayProfile.barangayLogo.uri
+                    : "/no-image.jpg"
+                }
+                alt="Barangay Milagrosa logo"
+                width={100}
+                height={100}
+                className="shrink-0 object-contain"
+              />
               <div className="space-y-1.5">
                 <h2 className="text-2xl font-bold">{barangayProfile.name}</h2>
                 <p className="flex items-center gap-1.5 text-sm text-primary-foreground/70">
@@ -201,6 +208,12 @@ export default function AboutUsPage() {
                 name: barangayProfile.name,
                 address: barangayProfile.address,
                 tagline: barangayProfile.tagline,
+                barangayLogo: barangayProfile.barangayLogo
+                  ? [barangayProfile.barangayLogo]
+                  : [],
+                skLogo: barangayProfile.skLogo
+                  ? [barangayProfile.skLogo]
+                  : [],
               }}
             />
           </div>
@@ -220,12 +233,20 @@ export default function AboutUsPage() {
         <OfficialsSection
           title="Barangay Officials"
           officials={barangayOfficials}
-          logoSrc="/logo.png"
+          logoSrc={
+            typeof barangayProfile.barangayLogo?.uri === "string"
+              ? barangayProfile.barangayLogo.uri
+              : "/no-image.jpg"
+          }
         />
         <OfficialsSection
           title="Sangguniang Kabataan"
           officials={skOfficials}
-          logoSrc="/sk-logo.png"
+          logoSrc={
+            typeof barangayProfile.skLogo?.uri === "string"
+              ? barangayProfile.skLogo.uri
+              : "/no-image.jpg"
+          }
         />
       </div>
     </div>

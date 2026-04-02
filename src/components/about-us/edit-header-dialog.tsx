@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,6 +24,8 @@ import {
   editHeaderSchema,
   EditHeaderFormValues,
 } from "@/schemas/about-us-schema";
+import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
+import { updateBarangayHeader } from "@/services/about-us-service";
 
 interface EditHeaderDialogProps {
   defaultValues: EditHeaderFormValues;
@@ -32,6 +35,7 @@ export default function EditHeaderDialog({
   defaultValues,
 }: EditHeaderDialogProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -51,10 +55,50 @@ export default function EditHeaderDialog({
   }, [open, defaultValues, reset]);
 
   const onSubmit = async (data: EditHeaderFormValues) => {
-    // TODO: Implement submission logic
-    console.log("Edit header data:", data);
-    toast.success("Header updated successfully!");
-    setOpen(false);
+    try {
+      const { name, address, tagline, barangayLogo = [], skLogo = [] } = data;
+
+      // Upload logos to Firebase Storage.
+      // - Items that already have a `path` (existing uploads) are returned as-is.
+      // - Items whose `uri` is a File are uploaded and a download URL + path are returned.
+      // - Empty arrays (logo cleared by user) resolve to an empty array.
+      const [uploadedBarangayLogo, uploadedSkLogo] = await Promise.all([
+        uploadMultiplePostImages(barangayLogo, "about-us/barangay-logo"),
+        uploadMultiplePostImages(skLogo, "about-us/sk-logo"),
+      ]);
+
+      // Persist the updated header fields to Firestore.
+      // uploadedBarangayLogo[0] / uploadedSkLogo[0] are undefined when the user
+      // cleared the logo, which causes updateBarangayHeader to remove the field
+      // via FieldValue.delete().
+      await updateBarangayHeader({
+        name,
+        address,
+        tagline,
+        barangayLogo: uploadedBarangayLogo[0],
+        skLogo: uploadedSkLogo[0],
+      });
+
+      // Delete logos that existed before but are no longer in the uploaded set
+      // (i.e. the user removed them), then delete them from Firebase Storage.
+      const logosToDelete = [
+        ...(defaultValues.barangayLogo ?? []).filter(
+          (existing) => !uploadedBarangayLogo.some((u) => u.path === existing.path),
+        ),
+        ...(defaultValues.skLogo ?? []).filter(
+          (existing) => !uploadedSkLogo.some((u) => u.path === existing.path),
+        ),
+      ];
+      await deleteImagesByPath(logosToDelete);
+
+      // Re-run server components on the current page to sync server-rendered data.
+      router.refresh();
+      toast.success("Header updated successfully!");
+      setOpen(false);
+    } catch (error) {
+      console.error("Failed to update header:", error);
+      toast.error("Failed to update header. Please try again.");
+    }
   };
 
   return (
