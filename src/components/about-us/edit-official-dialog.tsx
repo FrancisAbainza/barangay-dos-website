@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,16 +16,31 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import MultiImageUploader from "@/components/multi-image-uploader";
 import {
   officialSchema,
   OfficialFormValues,
+  BARANGAY_ROLES,
+  SK_ROLES,
+  type OfficialType,
 } from "@/schemas/about-us-schema";
 import type { ImageItem } from "@/components/multi-image-uploader";
+import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
+import { updateOfficial } from "@/services/about-us-service";
 
 interface EditOfficialDialogProps {
+  id: string;
+  type: OfficialType;
+  takenRoles: string[];
   defaultValues: {
     fullName: string;
     role: string;
@@ -33,9 +49,14 @@ interface EditOfficialDialogProps {
 }
 
 export default function EditOfficialDialog({
+  id,
+  type,
+  takenRoles,
   defaultValues,
 }: EditOfficialDialogProps) {
+  const roles = type === "barangay" ? BARANGAY_ROLES : SK_ROLES;
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const {
     register,
@@ -63,10 +84,42 @@ export default function EditOfficialDialog({
   }, [open, defaultValues, reset]);
 
   const onSubmit = async (data: OfficialFormValues) => {
-    // TODO: Implement submission logic
-    console.log("Edit official data:", data);
-    toast.success("Official updated successfully!");
-    setOpen(false);
+    try {
+      const { fullName, role, picture = [] } = data;
+
+      // Upload the picture to Firebase Storage if a new one was selected.
+      // - Items that already have a `path` (existing uploads) are returned as-is.
+      // - Items whose `uri` is a File are uploaded and a download URL + path are returned.
+      // - Empty arrays (picture cleared by user) resolve to an empty array.
+      const uploadedPictures = await uploadMultiplePostImages(
+        picture,
+        `officials/${type}`,
+      );
+
+      // Persist the updated fields to Firestore.
+      // uploadedPictures[0] is undefined when no picture was selected, which
+      // causes updateOfficial to remove the picture field via FieldValue.delete().
+      await updateOfficial(type, id, {
+        fullName,
+        role,
+        picture: uploadedPictures[0],
+      });
+
+      // Delete the old picture from Firebase Storage if the user replaced or removed it.
+      const picturesToDelete = (defaultValues.picture ?? []).filter(
+        (existing) =>
+          !uploadedPictures.some((u) => u.path === existing.path),
+      );
+      await deleteImagesByPath(picturesToDelete);
+
+      // Re-run server components on the current page to sync server-rendered data.
+      router.refresh();
+      toast.success("Official updated successfully!");
+      setOpen(false);
+    } catch (error) {
+      console.error("Failed to update official:", error);
+      toast.error("Failed to update official. Please try again.");
+    }
   };
 
   return (
@@ -100,16 +153,41 @@ export default function EditOfficialDialog({
               <FieldError errors={[errors.fullName]} />
             </Field>
 
-            <Field data-invalid={!!errors.role}>
-              <FieldLabel htmlFor="edit-official-role">Role</FieldLabel>
-              <Input
-                {...register("role")}
-                id="edit-official-role"
-                placeholder="e.g. Kagawad, Secretary"
-                aria-invalid={!!errors.role}
-              />
-              <FieldError errors={[errors.role]} />
-            </Field>
+            <Controller
+              name="role"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Role</FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roles.map((role) => {
+                        // A role is blocked if it's taken by another official.
+                        // The official's own current role is never blocked so
+                        // they can save without changing it.
+                        const blocked =
+                          takenRoles.includes(role) &&
+                          role !== defaultValues.role;
+                        return (
+                          <SelectItem
+                            key={role}
+                            value={role}
+                            disabled={blocked}
+                          >
+                            {role}
+                            {blocked ? " (already assigned)" : ""}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
 
             <Controller
               name="picture"

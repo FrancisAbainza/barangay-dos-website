@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Info, MapPin, Quote } from "lucide-react";
@@ -8,27 +8,16 @@ import EditHeaderDialog from "@/components/about-us/edit-header-dialog";
 import AddOfficialDialog from "@/components/about-us/add-official-dialog";
 import EditOfficialDialog from "@/components/about-us/edit-official-dialog";
 import DeleteOfficialDialog from "@/components/about-us/delete-official-dialog";
-import { getBarangayProfile } from "@/services/about-us-service";
-
-interface Official {
-  name: string;
-  position: string;
-  isChief?: boolean;
-}
-
-// TODO: Replace with real data from the database
-const barangayOfficials: Official[] = [
-  { name: "Juan dela Cruz", position: "Punong Barangay", isChief: true },
-  { name: "Maria Santos", position: "Kagawad" },
-  { name: "Pedro Reyes", position: "Kagawad" },
-  { name: "Ana Lopez", position: "Kagawad" },
-  { name: "Jose Garcia", position: "Kagawad" },
-  { name: "Rosa Martinez", position: "Kagawad" },
-  { name: "Carlos Fernandez", position: "Kagawad" },
-  { name: "Elena Villanueva", position: "Kagawad" },
-  { name: "Liza Bautista", position: "Secretary" },
-  { name: "Rodrigo Aquino", position: "Treasurer" },
-];
+import {
+  getBarangayProfile,
+  getOfficials,
+  type Official,
+} from "@/services/about-us-service";
+import {
+  type OfficialType,
+  BARANGAY_SINGLETON_ROLES,
+  SK_SINGLETON_ROLES,
+} from "@/schemas/about-us-schema";
 
 // Fallback values shown when the database has no profile document yet.
 const PROFILE_FALLBACK = {
@@ -38,18 +27,11 @@ const PROFILE_FALLBACK = {
     "Dedicated to serving every resident of Barangay Milagrosa with transparency, compassion, and excellence in public service.",
 };
 
-const skOfficials: Official[] = [
-  { name: "Michael Torres", position: "SK Chairman", isChief: true },
-  { name: "Sophia Ramos", position: "SK Kagawad" },
-  { name: "Daniel Cruz", position: "SK Kagawad" },
-  { name: "Isabella Flores", position: "SK Kagawad" },
-  { name: "Gabriel Morales", position: "SK Kagawad" },
-  { name: "Camille Navarro", position: "SK Kagawad" },
-  { name: "Joshua Castillo", position: "SK Kagawad" },
-  { name: "Andrea Mendoza", position: "SK Kagawad" },
-  { name: "Patricia Dela Rosa", position: "SK Secretary" },
-  { name: "Ryan Santiago", position: "SK Treasurer" },
-];
+// The role that identifies the chief official for each type.
+const CHIEF_ROLES: Record<OfficialType, string> = {
+  barangay: "Punong Barangay",
+  sk: "SK Chairman",
+};
 
 function getInitials(name: string) {
   return name
@@ -62,15 +44,24 @@ function getInitials(name: string) {
 
 function OfficialsSection({
   title,
+  type,
   officials,
   logoSrc,
 }: {
   title: string;
+  type: OfficialType;
   officials: Official[];
   logoSrc: string;
 }) {
-  const chief = officials.find((o) => o.isChief);
-  const rest = officials.filter((o) => !o.isChief);
+  const chiefRole = CHIEF_ROLES[type];
+  const chief = officials.find((o) => o.role === chiefRole);
+  const rest = officials.filter((o) => o.role !== chiefRole);
+
+  // Singleton roles already assigned across all officials in this section.
+  const singletonRoles = type === "barangay" ? BARANGAY_SINGLETON_ROLES : SK_SINGLETON_ROLES;
+  const allTakenSingletonRoles = officials
+    .map((o) => o.role)
+    .filter((r) => singletonRoles.includes(r));
 
   return (
     <Card>
@@ -91,71 +82,122 @@ function OfficialsSection({
               </p>
             </div>
           </div>
-          <AddOfficialDialog title={title} />
+          <AddOfficialDialog title={title} type={type} takenRoles={allTakenSingletonRoles} />
         </div>
       </CardHeader>
       <Separator />
       <CardContent className="pt-6 space-y-6">
-        {/* Leader — centered and prominent */}
-        {chief && (
-          <div className="relative flex flex-col items-center text-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-5">
-            <div className="absolute top-2 right-2 flex gap-0.5">
-              <EditOfficialDialog
-                defaultValues={{ fullName: chief.name, role: chief.position }}
-              />
-              <DeleteOfficialDialog officialName={chief.name} />
-            </div>
-            <Avatar className="size-16">
-              <AvatarFallback className="bg-primary text-primary-foreground text-lg font-bold">
-                {getInitials(chief.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-base font-semibold">{chief.name}</p>
-              <Badge className="mt-1">{chief.position}</Badge>
-            </div>
-          </div>
-        )}
+        {officials.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            No officials added yet. Click &ldquo;Add Official&rdquo; to get
+            started.
+          </p>
+        ) : (
+          <>
+            {/* Leader — centered and prominent */}
+            {chief && (
+              <div className="relative flex flex-col items-center text-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-5">
+                <div className="absolute top-2 right-2 flex gap-0.5">
+                  <EditOfficialDialog
+                    id={chief.id}
+                    type={type}
+                    takenRoles={allTakenSingletonRoles}
+                    defaultValues={{
+                      fullName: chief.fullName,
+                      role: chief.role,
+                      picture: chief.picture ? [chief.picture] : [],
+                    }}
+                  />
+                  <DeleteOfficialDialog
+                    id={chief.id}
+                    type={type}
+                    officialName={chief.fullName}
+                  />
+                </div>
+                <Avatar className="size-16">
+                  <AvatarImage
+                    src={
+                      typeof chief.picture?.uri === "string"
+                        ? chief.picture.uri
+                        : undefined
+                    }
+                  />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-lg font-bold">
+                    {getInitials(chief.fullName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-base font-semibold">{chief.fullName}</p>
+                  <Badge className="mt-1">{chief.role}</Badge>
+                </div>
+              </div>
+            )}
 
-        {/* Remaining officials — responsive grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {rest.map((official) => (
-            <div
-              key={official.name}
-              className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-accent/50"
-            >
-              <Avatar className="size-10 shrink-0">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                  {getInitials(official.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{official.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {official.position}
-                </p>
+            {/* Remaining officials — responsive grid */}
+            {rest.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {rest.map((official) => (
+                  <div
+                    key={official.id}
+                    className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-accent/50"
+                  >
+                    <Avatar className="size-10 shrink-0">
+                      <AvatarImage
+                        src={
+                          typeof official.picture?.uri === "string"
+                            ? official.picture.uri
+                            : undefined
+                        }
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                        {getInitials(official.fullName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">
+                        {official.fullName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {official.role}
+                      </p>
+                    </div>
+                    <div className="flex gap-0.5 shrink-0">
+                      <EditOfficialDialog
+                        id={official.id}
+                        type={type}
+                        takenRoles={allTakenSingletonRoles}
+                        defaultValues={{
+                          fullName: official.fullName,
+                          role: official.role,
+                          picture: official.picture ? [official.picture] : [],
+                        }}
+                      />
+                      <DeleteOfficialDialog
+                        id={official.id}
+                        type={type}
+                        officialName={official.fullName}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex gap-0.5 shrink-0">
-                <EditOfficialDialog
-                  defaultValues={{
-                    fullName: official.name,
-                    role: official.position,
-                  }}
-                />
-                <DeleteOfficialDialog officialName={official.name} />
-              </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 export default async function AboutUsPage() {
-  // Fetch the barangay profile from Firestore.
-  // Falls back to hardcoded defaults when no document exists yet.
-  const profile = await getBarangayProfile();
+  // Fetch the barangay profile and both officials lists from Firestore in parallel.
+  // Each falls back gracefully when no documents exist yet.
+  const [profile, barangayOfficials, skOfficials] = await Promise.all([
+    getBarangayProfile(),
+    getOfficials("barangay"),
+    getOfficials("sk"),
+  ]);
+
   const barangayProfile = {
     name: profile?.name || PROFILE_FALLBACK.name,
     address: profile?.address || PROFILE_FALLBACK.address,
@@ -232,6 +274,7 @@ export default async function AboutUsPage() {
       <div className="space-y-6">
         <OfficialsSection
           title="Barangay Officials"
+          type="barangay"
           officials={barangayOfficials}
           logoSrc={
             typeof barangayProfile.barangayLogo?.uri === "string"
@@ -241,6 +284,7 @@ export default async function AboutUsPage() {
         />
         <OfficialsSection
           title="Sangguniang Kabataan"
+          type="sk"
           officials={skOfficials}
           logoSrc={
             typeof barangayProfile.skLogo?.uri === "string"

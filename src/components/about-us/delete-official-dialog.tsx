@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import type { OfficialType } from "@/schemas/about-us-schema";
+import { deleteOfficial } from "@/services/about-us-service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,20 +20,28 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface DeleteOfficialDialogProps {
+  id: string;
+  type: OfficialType;
   officialName: string;
 }
 
 export default function DeleteOfficialDialog({
+  id,
+  type,
   officialName,
 }: DeleteOfficialDialogProps) {
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const router = useRouter();
 
   const handleDelete = async () => {
     setIsPending(true);
     try {
-      // TODO: Implement deletion logic
-      console.log("Delete official:", officialName);
+      // Delete the official document from the correct Firestore collection.
+      await deleteOfficial(type, id);
+
+      // Re-run server components on the current page to sync server-rendered data.
+      router.refresh();
       toast.success(`${officialName} removed successfully!`);
       setOpen(false);
     } catch (error) {

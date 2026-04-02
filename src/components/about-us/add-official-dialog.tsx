@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,20 +16,41 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import MultiImageUploader from "@/components/multi-image-uploader";
 import {
   officialSchema,
   OfficialFormValues,
+  BARANGAY_ROLES,
+  SK_ROLES,
+  type OfficialType,
 } from "@/schemas/about-us-schema";
+import { uploadMultiplePostImages } from "@/services/storage-service";
+import { addOfficial } from "@/services/about-us-service";
 
 interface AddOfficialDialogProps {
   title: string;
+  type: OfficialType;
+  takenRoles: string[];
 }
 
-export default function AddOfficialDialog({ title }: AddOfficialDialogProps) {
+export default function AddOfficialDialog({
+  title,
+  type,
+  takenRoles,
+}: AddOfficialDialogProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  const roles = type === "barangay" ? BARANGAY_ROLES : SK_ROLES;
 
   const {
     register,
@@ -38,11 +60,7 @@ export default function AddOfficialDialog({ title }: AddOfficialDialogProps) {
     formState: { errors, isSubmitting },
   } = useForm<OfficialFormValues>({
     resolver: zodResolver(officialSchema),
-    defaultValues: {
-      fullName: "",
-      role: "",
-      picture: [],
-    },
+    defaultValues: { fullName: "", role: "", picture: [] },
   });
 
   useEffect(() => {
@@ -52,10 +70,34 @@ export default function AddOfficialDialog({ title }: AddOfficialDialogProps) {
   }, [open, reset]);
 
   const onSubmit = async (data: OfficialFormValues) => {
-    // TODO: Implement submission logic
-    console.log("Add official data:", data);
-    toast.success("Official added successfully!");
-    setOpen(false);
+    try {
+      const { fullName, role, picture = [] } = data;
+
+      // Upload the picture to Firebase Storage if one was selected.
+      // - If uri is a File, it gets uploaded and a download URL + path are returned.
+      // - If picture is empty (no picture selected), this resolves to an empty array.
+      const uploadedPictures = await uploadMultiplePostImages(
+        picture,
+        `officials/${type}`,
+      );
+
+      // Persist the new official to Firestore under the correct collection.
+      // uploadedPictures[0] is undefined when no picture was selected,
+      // so the picture field is omitted from the document in that case.
+      await addOfficial(type, {
+        fullName,
+        role,
+        picture: uploadedPictures[0],
+      });
+
+      // Re-run server components on the current page to sync server-rendered data.
+      router.refresh();
+      toast.success("Official added successfully!");
+      setOpen(false);
+    } catch (error) {
+      console.error("Failed to add official:", error);
+      toast.error("Failed to add official. Please try again.");
+    }
   };
 
   return (
@@ -83,16 +125,35 @@ export default function AddOfficialDialog({ title }: AddOfficialDialogProps) {
               <FieldError errors={[errors.fullName]} />
             </Field>
 
-            <Field data-invalid={!!errors.role}>
-              <FieldLabel htmlFor="official-role">Role</FieldLabel>
-              <Input
-                {...register("role")}
-                id="official-role"
-                placeholder="e.g. Kagawad, Secretary"
-                aria-invalid={!!errors.role}
-              />
-              <FieldError errors={[errors.role]} />
-            </Field>
+            <Controller
+              name="role"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Role</FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roles.map((role) => (
+                        <SelectItem
+                          key={role}
+                          value={role}
+                          disabled={takenRoles.includes(role)}
+                        >
+                          {role}
+                          {takenRoles.includes(role)
+                            ? " (already assigned)"
+                            : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
 
             <Controller
               name="picture"
