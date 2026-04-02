@@ -26,6 +26,7 @@ import {
 } from "@/schemas/about-us-schema";
 import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
 import { updateBarangayHeader } from "@/services/about-us-service";
+import { useBarangayProfile } from "@/contexts/barangay-profile-context";
 
 interface EditHeaderDialogProps {
   defaultValues: EditHeaderFormValues;
@@ -36,6 +37,7 @@ export default function EditHeaderDialog({
 }: EditHeaderDialogProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const { refreshBarangayProfile } = useBarangayProfile();
 
   const {
     register,
@@ -93,6 +95,7 @@ export default function EditHeaderDialog({
 
       // Re-run server components on the current page to sync server-rendered data.
       router.refresh();
+      await refreshBarangayProfile();
       toast.success("Header updated successfully!");
       setOpen(false);
     } catch (error) {

@@ -19,6 +19,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { useBarangayProfile } from "@/contexts/barangay-profile-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -35,7 +36,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import Image from "next/image";
-import logo from '../../public/logo.png';
 
 const residentMenuItems = [
   { title: "Home", href: "/resident", icon: Home },
@@ -71,6 +71,7 @@ const tanodMenuItems = [
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const { user, userProfile, logout } = useAuth();
+  const { barangayName, barangayLogoUrl } = useBarangayProfile();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
 
@@ -82,12 +83,12 @@ export default function DashboardSidebar() {
           <SidebarHeader className="flex flex-row items-center justify-center border-b border-sidebar-border py-4">
             <div className="flex flex-col items-center gap-2">
               <Image
-                src={logo}
-                alt="Picture of barangay milagrosa's logo"
+                src={barangayLogoUrl ?? "/no-image.jpg"}
+                alt={`${barangayName} logo`}
                 width={150}
                 height={150}
               />
-              <span className="font-semibold text-sm">Barangay Milagrosa Website</span>
+              <span className="font-semibold text-sm">{barangayName} Website</span>
             </div>
 
           </SidebarHeader>

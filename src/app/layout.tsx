@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AuthProvider from "@/contexts/auth-context";
+import BarangayProfileProvider from "@/contexts/barangay-profile-context";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: "Barangay Milagrosa Website",
-  description: "A modern, user-friendly website for Barangay Milagrosa, providing residents with easy access to announcements, document requests, court reservations, complaint reporting, and more.",
+  title: "Barangay Dos Website",
+  description: "A modern, user-friendly website for Barangay Dos, providing residents with easy access to announcements, document requests, court reservations, complaint reporting, and more.",
 };
 
 export default function RootLayout({
@@ -19,8 +20,10 @@ export default function RootLayout({
         className={`antialiased`}
       >
         <AuthProvider>
-          {children}
-          <Toaster />
+          <BarangayProfileProvider>
+            {children}
+            <Toaster />
+          </BarangayProfileProvider>
         </AuthProvider>
       </body>
     </html>

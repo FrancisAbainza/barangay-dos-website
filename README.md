@@ -1,6 +1,6 @@
-# Barangay Milagrosa Website
+# Barangay Dos Website
 
-A civic web portal for Barangay Milagrosa that centralizes community services for residents and staff, reducing the need for in-person visits to the barangay hall.
+A civic web portal for Barangay Dos that centralizes community services for residents and staff, reducing the need for in-person visits to the barangay hall.
 
 ## Features
 

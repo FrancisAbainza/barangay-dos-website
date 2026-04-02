@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Megaphone,
   FileText,
@@ -14,14 +16,14 @@ import { Badge } from "@/components/ui/badge";
 import ResidentAuthDialog from "@/components/resident-auth-dialog";
 import StaffAuthDialog from "@/components/staff-auth-dialog";
 import Image from "next/image";
-import logo from '../../public/logo.png';
+import { useBarangayProfile } from "@/contexts/barangay-profile-context";
 
-const features = [
+const getFeatures = (name: string) => [
   {
     icon: Megaphone,
     title: "Announcements",
     description:
-      "Stay up-to-date with the latest news, events, and official notices from Barangay Milagrosa.",
+      `Stay up-to-date with the latest news, events, and official notices from ${name}.`,
     badge: "Community",
   },
   {
@@ -62,6 +64,9 @@ const features = [
 ];
 
 export default function Home() {
+  const { barangayName, barangayLogoUrl } = useBarangayProfile();
+  const features = getFeatures(barangayName);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
@@ -69,8 +74,8 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
-              src={logo}
-              alt="Picture of barangay milagrosa's logo"
+              src={barangayLogoUrl ?? "/no-image.jpg"}
+              alt={`${barangayName} logo`}
               width={75}
               height={75}
             />
@@ -79,7 +84,7 @@ export default function Home() {
                 Republic of the Philippines
               </p>
               <p className="text-xl font-bold leading-tight text-foreground">
-                Barangay Milagrosa
+                {barangayName}
               </p>
             </div>
           </div>
@@ -102,7 +107,7 @@ export default function Home() {
           <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
             Welcome to Barangay
             <br />
-            <span className="text-secondary">Milagrosa</span>
+            <span className="text-secondary">{barangayName.replace(/^Barangay\s*/i, "")}</span>
           </h1>
           <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-primary-foreground/80 sm:text-xl">
             Your one-stop digital portal for barangay services. Access
@@ -126,7 +131,7 @@ export default function Home() {
               Everything You Need
             </h2>
             <p className="mx-auto max-w-xl text-base text-muted-foreground sm:text-lg">
-              Barangay Milagrosa brings essential government services directly
+              {barangayName} brings essential government services directly
               to your fingertips.
             </p>
           </div>
@@ -213,7 +218,7 @@ export default function Home() {
       <footer className="border-t border-border bg-card px-6 py-8">
         <div className="mx-auto max-w-6xl text-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Barangay Milagrosa &mdash; Official Digital Portal. All rights reserved.
+            &copy; {new Date().getFullYear()} {barangayName} &mdash; Official Digital Portal. All rights reserved.
           </p>
           <p className="mt-1 text-xs text-muted-foreground/70">
             Republic of the Philippines

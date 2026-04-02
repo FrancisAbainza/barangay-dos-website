@@ -21,10 +21,10 @@ import {
 
 // Fallback values shown when the database has no profile document yet.
 const PROFILE_FALLBACK = {
-  name: "Barangay Milagrosa",
+  name: "Barangay Dos",
   address: "District 2, Quezon City, Metro Manila",
   tagline:
-    "Dedicated to serving every resident of Barangay Milagrosa with transparency, compassion, and excellence in public service.",
+    "Dedicated to serving every resident with transparency, compassion, and excellence in public service.",
 };
 
 // The role that identifies the chief official for each type.
@@ -216,7 +216,7 @@ export default async function AboutUsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">About Us</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Barangay Milagrosa officials and Sangguniang Kabataan.
+            {barangayProfile.name} officials and Sangguniang Kabataan.
           </p>
         </div>
       </div>
@@ -232,7 +232,7 @@ export default async function AboutUsPage() {
                     ? barangayProfile.barangayLogo.uri
                     : "/no-image.jpg"
                 }
-                alt="Barangay Milagrosa logo"
+                alt={`${barangayProfile.name} logo`}
                 width={100}
                 height={100}
                 className="shrink-0 object-contain"
