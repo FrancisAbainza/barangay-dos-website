@@ -13,10 +13,12 @@ interface MultiImageUploaderProps {
   onImagesChange: (images: ImageItem[]) => void;
   images: ImageItem[];
   mode?: "single" | "multi";
+  maxFiles?: number;
 }
 
-export default function MultiImageUploader({ onImagesChange, images, mode = "multi" }: MultiImageUploaderProps) {
+export default function MultiImageUploader({ onImagesChange, images, mode = "multi", maxFiles }: MultiImageUploaderProps) {
   const isSingle = mode === "single";
+  const atLimit = maxFiles !== undefined && images.length >= maxFiles;
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
@@ -26,9 +28,10 @@ export default function MultiImageUploader({ onImagesChange, images, mode = "mul
       return;
     }
 
-    const newImages: ImageItem[] = acceptedFiles.map((file) => ({ uri: file }));
+    const remaining = maxFiles !== undefined ? maxFiles - images.length : acceptedFiles.length;
+    const newImages: ImageItem[] = acceptedFiles.slice(0, remaining).map((file) => ({ uri: file }));
     onImagesChange([...images, ...newImages]);
-  }, [images, onImagesChange, isSingle]);
+  }, [images, onImagesChange, isSingle, maxFiles]);
 
   const handleDelete = (deletedImageIndex: number) => {
     const updatedImages = images.filter((_, index) => index !== deletedImageIndex);
@@ -41,7 +44,7 @@ export default function MultiImageUploader({ onImagesChange, images, mode = "mul
     multiple: !isSingle,
   });
 
-  const showDropzone = !isSingle || images.length === 0;
+  const showDropzone = (!isSingle || images.length === 0) && !atLimit;
 
   return (
     <div>
