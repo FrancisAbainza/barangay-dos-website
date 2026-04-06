@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Bookmark, X } from "lucide-react";
-import { NewsPost } from "./types";
+import { NewsPost } from "@/schemas/news-schema";
 import { formatDate } from "./news-helpers";
 import { PostDetailDialog } from "./post-detail-dialog";
 

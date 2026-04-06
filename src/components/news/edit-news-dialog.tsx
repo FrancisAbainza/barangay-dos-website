@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import NewsForm from "@/components/news/news-form";
 import { NewsFormValues } from "@/schemas/news-schema";
-import { NewsPost } from "@/components/news/types";
+import { NewsPost } from "@/schemas/news-schema";
 
 interface EditNewsDialogProps {
   open: boolean;
@@ -27,7 +27,11 @@ export function EditNewsDialog({
     category: post.category,
     content: post.content,
     pinned: post.pinned ?? false,
-    images: post.images?.map((url) => ({ uri: url })) ?? [],
+    media:
+      post.media?.map((item) => ({
+        uri: item.url,
+        type: item.type,
+      })) ?? [],
     attachments:
       post.attachments?.map((att) => ({
         uri: att.url,

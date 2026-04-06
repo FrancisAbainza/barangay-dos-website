@@ -207,7 +207,7 @@ export default async function AboutUsPage() {
   };
 
   return (
-    <div className="container space-y-6">
+    <div className="container space-y-6 m-auto">
       {/* Page Header */}
       <div className="flex items-center gap-3">
         <div className="bg-accent text-primary p-2 rounded-md">

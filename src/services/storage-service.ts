@@ -2,6 +2,8 @@
 
 import { storage } from "@/lib/firebase/client";
 import type { ImageItem } from "@/components/multi-image-uploader";
+import type { MediaItem } from "@/components/media-uploader";
+import type { AttachmentItem } from "@/components/attachment-picker";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 export const uploadMultiplePostImages = async (images: ImageItem[], basePath: string) => {
@@ -46,4 +48,56 @@ export const deleteImagesByPath = async (images: ImageItem[]) => {
 
   // Now the parent's try/catch will actually wait here
   await Promise.all(deletePromises);
+};
+
+export const uploadMultipleAttachments = async (
+  attachments: AttachmentItem[],
+  basePath: string,
+): Promise<AttachmentItem[]> => {
+  const uploadPromises = attachments.map(async (attachment) => {
+    // If the attachment already has a storage path, it was previously uploaded — skip re-upload.
+    if (attachment.path) return attachment;
+
+    // Generate a unique path under the given base using a timestamp + random suffix.
+    const path = `${basePath}/${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const storageRef = ref(storage, path);
+
+    // Upload the raw File to Firebase Storage.
+    const snapshot = await uploadBytes(storageRef, attachment.uri as File);
+
+    // Retrieve the public download URL for the uploaded file.
+    const url = await getDownloadURL(snapshot.ref);
+
+    return {
+      uri: url,
+      path,
+      name: attachment.name,
+      size: attachment.size,
+    } satisfies AttachmentItem;
+  });
+
+  return Promise.all(uploadPromises);
+};
+
+export const uploadMultipleMedia = async (
+  media: MediaItem[],
+  basePath: string,
+): Promise<MediaItem[]> => {
+  const uploadPromises = media.map(async (item) => {
+    if (item.path) return item; // already uploaded
+
+    const path = `${basePath}/${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const storageRef = ref(storage, path);
+
+    const snapshot = await uploadBytes(storageRef, item.uri as File);
+    const url = await getDownloadURL(snapshot.ref);
+
+    return {
+      uri: url,
+      path,
+      type: item.type,
+    } satisfies MediaItem;
+  });
+
+  return Promise.all(uploadPromises);
 };

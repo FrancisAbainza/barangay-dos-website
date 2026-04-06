@@ -1,7 +1,7 @@
 "use client";
 
 import { Megaphone } from "lucide-react";
-import { NewsPost } from "./types";
+import { NewsPost } from "@/schemas/news-schema";
 import { PostCard } from "./post-card";
 
 export function PostFeed({

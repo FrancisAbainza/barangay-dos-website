@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, Send } from "lucide-react";
-import { Comment } from "./types";
+import { Comment } from "@/schemas/news-schema";
 import { formatDate, getInitials } from "./news-helpers";
 import { ReplyItem } from "./reply-item";
 

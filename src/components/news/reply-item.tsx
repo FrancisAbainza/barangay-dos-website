@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Reply } from "./types";
+import { Reply } from "@/schemas/news-schema";
 import { formatDate, getInitials } from "./news-helpers";
 
 export function ReplyItem({ reply }: { reply: Reply }) {

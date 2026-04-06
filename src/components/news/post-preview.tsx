@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { NewsPost, CATEGORY_CONFIG } from "./types";
+import { NewsPost, CATEGORY_CONFIG } from "@/schemas/news-schema";
 import { formatDate, getInitials } from "./news-helpers";
 
 export function PostPreview({

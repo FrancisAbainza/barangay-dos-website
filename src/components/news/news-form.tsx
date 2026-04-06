@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import MultiImageUploader from "@/components/multi-image-uploader";
 import AttachmentPicker from "@/components/attachment-picker";
+import MediaUploader from "@/components/media-uploader";
 import { newsFormSchema, NewsFormValues } from "@/schemas/news-schema";
 
 const EMPTY_DEFAULTS: NewsFormValues = {
@@ -27,7 +28,7 @@ const EMPTY_DEFAULTS: NewsFormValues = {
   category: undefined as unknown as NewsFormValues["category"],
   content: "",
   pinned: false,
-  images: [],
+  media: [],
   attachments: [],
 };
 
@@ -108,19 +109,19 @@ export default function NewsForm({
         </Field>
 
         <Controller
-          name="images"
+          name="media"
           control={control}
           render={({ field }) => (
             <Field>
               <FieldLabel>
-                Images{" "}
+                Media{" "}
                 <span className="text-muted-foreground font-normal">
                   (optional, max 10)
                 </span>
               </FieldLabel>
-              <MultiImageUploader
-                images={field.value ?? []}
-                onImagesChange={field.onChange}
+              <MediaUploader
+                media={field.value ?? []}
+                onMediaChange={field.onChange}
                 maxFiles={10}
               />
             </Field>

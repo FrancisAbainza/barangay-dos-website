@@ -20,9 +20,9 @@ import {
   BookmarkCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NewsPost, Comment, Reply, CATEGORY_CONFIG } from "./types";
+import { NewsPost, Comment, Reply, CATEGORY_CONFIG } from "@/schemas/news-schema";
 import { formatDate, getInitials } from "./news-helpers";
-import { ImageGallery } from "./image-gallery";
+import { MediaGallery } from "./image-gallery";
 import { CommentItem } from "./comment-item";
 
 export function PostDetailDialog({
@@ -172,9 +172,9 @@ export function PostDetailDialog({
           </div>
 
           {/* Images */}
-          {localPost.images && localPost.images.length > 0 && (
+          {localPost.media && localPost.media.length > 0 && (
             <div className="px-5">
-              <ImageGallery images={localPost.images} />
+              <MediaGallery media={localPost.media} />
             </div>
           )}
 
