@@ -19,6 +19,8 @@ import {
   toggleReaction,
   addCommentToPost,
   addReplyToComment,
+  deleteCommentFromPost,
+  deleteReplyFromComment,
   getAuthorInfoBatch,
   type AuthorInfo,
 } from "@/services/news-service";
@@ -64,6 +66,8 @@ interface NewsContextType {
   // Comments
   addComment: (postId: string, content: string) => void;
   addReply: (postId: string, commentId: string, content: string) => void;
+  deleteComment: (postId: string, commentId: string) => void;
+  deleteReply: (postId: string, commentId: string, replyId: string) => void;
   // Authors
   authors: Record<string, AuthorInfo>;
   // Per-category feeds
@@ -136,8 +140,8 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
 
       setCategoryFeeds({
         Announcement: { posts: announcements.posts, cursor: announcements.nextCursor, hasMore: announcements.nextCursor !== null, isLoadingMore: false },
-        Event:        { posts: events.posts,        cursor: events.nextCursor,        hasMore: events.nextCursor !== null,        isLoadingMore: false },
-        Emergency:    { posts: emergencies.posts,   cursor: emergencies.nextCursor,   hasMore: emergencies.nextCursor !== null,   isLoadingMore: false },
+        Event: { posts: events.posts, cursor: events.nextCursor, hasMore: events.nextCursor !== null, isLoadingMore: false },
+        Emergency: { posts: emergencies.posts, cursor: emergencies.nextCursor, hasMore: emergencies.nextCursor !== null, isLoadingMore: false },
       });
 
       fetchAuthors([...feedResult.posts, ...pinned, ...announcements.posts, ...events.posts, ...emergencies.posts]);
@@ -233,8 +237,8 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
     setSavedPosts(remover);
     setCategoryFeeds((prev) => ({
       Announcement: { ...prev.Announcement, posts: prev.Announcement.posts.filter((p) => p.id !== postId) },
-      Event:        { ...prev.Event,        posts: prev.Event.posts.filter((p) => p.id !== postId) },
-      Emergency:    { ...prev.Emergency,    posts: prev.Emergency.posts.filter((p) => p.id !== postId) },
+      Event: { ...prev.Event, posts: prev.Event.posts.filter((p) => p.id !== postId) },
+      Emergency: { ...prev.Emergency, posts: prev.Emergency.posts.filter((p) => p.id !== postId) },
     }));
     deleteNewsPost(postId).catch(console.error);
   }, []);
@@ -278,15 +282,29 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
     setSavedPosts((prev) => prev.map(updateReaction));
     setCategoryFeeds((prev) => ({
       Announcement: { ...prev.Announcement, posts: prev.Announcement.posts.map(updateReaction) },
-      Event:        { ...prev.Event,        posts: prev.Event.posts.map(updateReaction) },
-      Emergency:    { ...prev.Emergency,    posts: prev.Emergency.posts.map(updateReaction) },
+      Event: { ...prev.Event, posts: prev.Event.posts.map(updateReaction) },
+      Emergency: { ...prev.Emergency, posts: prev.Emergency.posts.map(updateReaction) },
     }));
     toggleReaction(postId, userId, type).catch(console.error);
   }, [user]);
 
   // ── Comments & Replies ────────────────────────────────────────
   const addComment = useCallback((postId: string, content: string) => {
-    if (!user) return;
+    if (!user || !userProfile) return;
+    // Seed the current user into the author cache so their name shows immediately.
+    setAuthors((prev) =>
+      prev[user.uid]
+        ? prev
+        : {
+            ...prev,
+            [user.uid]: {
+              uid: user.uid,
+              fullName: userProfile.fullName,
+              avatarUrl: typeof userProfile.profilePicture?.[0]?.uri === "string" ? userProfile.profilePicture[0].uri : undefined,
+              role: userProfile.role,
+            },
+          },
+    );
     const comment: Comment = {
       id: `c-${Date.now()}`,
       authorId: user.uid,
@@ -301,14 +319,28 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
     setSavedPosts((prev) => prev.map(updater));
     setCategoryFeeds((prev) => ({
       Announcement: { ...prev.Announcement, posts: prev.Announcement.posts.map(updater) },
-      Event:        { ...prev.Event,        posts: prev.Event.posts.map(updater) },
-      Emergency:    { ...prev.Emergency,    posts: prev.Emergency.posts.map(updater) },
+      Event: { ...prev.Event, posts: prev.Event.posts.map(updater) },
+      Emergency: { ...prev.Emergency, posts: prev.Emergency.posts.map(updater) },
     }));
     addCommentToPost(postId, { id: comment.id, authorId: user.uid, content }).catch(console.error);
-  }, [user]);
+  }, [user, userProfile]);
 
   const addReplyFn = useCallback((postId: string, commentId: string, content: string) => {
-    if (!user) return;
+    if (!user || !userProfile) return;
+    // Seed the current user into the author cache so their name shows immediately.
+    setAuthors((prev) =>
+      prev[user.uid]
+        ? prev
+        : {
+            ...prev,
+            [user.uid]: {
+              uid: user.uid,
+              fullName: userProfile.fullName,
+              avatarUrl: typeof userProfile.profilePicture?.[0]?.uri === "string" ? userProfile.profilePicture[0].uri : undefined,
+              role: userProfile.role,
+            },
+          },
+    );
     const reply: Reply = {
       id: `r-${Date.now()}`,
       authorId: user.uid,
@@ -319,9 +351,48 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
       post.id !== postId
         ? post
         : {
+          ...post,
+          comments: post.comments.map((c) =>
+            c.id === commentId ? { ...c, replies: [...c.replies, reply] } : c,
+          ),
+        };
+    setPosts((prev) => prev.map(updater));
+    setPinnedPosts((prev) => prev.map(updater));
+    setSavedPosts((prev) => prev.map(updater));
+    setCategoryFeeds((prev) => ({
+      Announcement: { ...prev.Announcement, posts: prev.Announcement.posts.map(updater) },
+      Event: { ...prev.Event, posts: prev.Event.posts.map(updater) },
+      Emergency: { ...prev.Emergency, posts: prev.Emergency.posts.map(updater) },
+    }));
+    addReplyToComment(postId, commentId, { id: reply.id, authorId: user.uid, content }).catch(console.error);
+  }, [user, userProfile]);
+
+  const deleteCommentFn = useCallback((postId: string, commentId: string) => {
+    const updater = (post: NewsPost) =>
+      post.id !== postId
+        ? post
+        : { ...post, comments: post.comments.filter((c) => c.id !== commentId) };
+    setPosts((prev) => prev.map(updater));
+    setPinnedPosts((prev) => prev.map(updater));
+    setSavedPosts((prev) => prev.map(updater));
+    setCategoryFeeds((prev) => ({
+      Announcement: { ...prev.Announcement, posts: prev.Announcement.posts.map(updater) },
+      Event: { ...prev.Event, posts: prev.Event.posts.map(updater) },
+      Emergency: { ...prev.Emergency, posts: prev.Emergency.posts.map(updater) },
+    }));
+    deleteCommentFromPost(postId, commentId).catch(console.error);
+  }, []);
+
+  const deleteReplyFn = useCallback((postId: string, commentId: string, replyId: string) => {
+    const updater = (post: NewsPost) =>
+      post.id !== postId
+        ? post
+        : {
             ...post,
             comments: post.comments.map((c) =>
-              c.id === commentId ? { ...c, replies: [...c.replies, reply] } : c,
+              c.id !== commentId
+                ? c
+                : { ...c, replies: c.replies.filter((r) => r.id !== replyId) },
             ),
           };
     setPosts((prev) => prev.map(updater));
@@ -329,11 +400,11 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
     setSavedPosts((prev) => prev.map(updater));
     setCategoryFeeds((prev) => ({
       Announcement: { ...prev.Announcement, posts: prev.Announcement.posts.map(updater) },
-      Event:        { ...prev.Event,        posts: prev.Event.posts.map(updater) },
-      Emergency:    { ...prev.Emergency,    posts: prev.Emergency.posts.map(updater) },
+      Event: { ...prev.Event, posts: prev.Event.posts.map(updater) },
+      Emergency: { ...prev.Emergency, posts: prev.Emergency.posts.map(updater) },
     }));
-    addReplyToComment(postId, commentId, { id: reply.id, authorId: user.uid, content }).catch(console.error);
-  }, [user]);
+    deleteReplyFromComment(postId, commentId, replyId).catch(console.error);
+  }, []);
 
   return (
     <NewsContext.Provider
@@ -352,6 +423,8 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
         applyReaction,
         addComment,
         addReply: addReplyFn,
+        deleteComment: deleteCommentFn,
+        deleteReply: deleteReplyFn,
         authors,
         categoryFeeds,
         loadMoreCategory,

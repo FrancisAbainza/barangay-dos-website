@@ -18,6 +18,8 @@ import {
 } from "@/schemas/about-us-schema";
 import { useBarangayProfile } from "@/contexts/barangay-profile-context";
 import { useAboutUs } from "@/contexts/about-us-context";
+import { AboutUsProvider } from "@/contexts/about-us-context";
+import { useAuth } from "@/contexts/auth-context";
 import { getInitials } from "@/lib/utils";
 
 // Fallback values shown when the context has no profile yet.
@@ -39,11 +41,13 @@ function OfficialsSection({
   type,
   officials,
   logoSrc,
+  isAuthenticated,
 }: {
   title: string;
   type: OfficialType;
   officials: Official[];
   logoSrc: string;
+  isAuthenticated: boolean;
 }) {
   const chiefRole = CHIEF_ROLES[type];
   const chief = officials.find((o) => o.role === chiefRole);
@@ -75,11 +79,13 @@ function OfficialsSection({
               </p>
             </div>
           </div>
-          <AddOfficialDialog
-            title={title}
-            type={type}
-            takenRoles={allTakenSingletonRoles}
-          />
+          {isAuthenticated && (
+            <AddOfficialDialog
+              title={title}
+              type={type}
+              takenRoles={allTakenSingletonRoles}
+            />
+          )}
         </div>
       </CardHeader>
       <Separator />
@@ -94,23 +100,25 @@ function OfficialsSection({
             {/* Leader — centered and prominent */}
             {chief && (
               <div className="relative flex flex-col items-center text-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-5">
-                <div className="absolute top-2 right-2 flex gap-0.5">
-                  <EditOfficialDialog
-                    id={chief.id}
-                    type={type}
-                    takenRoles={allTakenSingletonRoles}
-                    defaultValues={{
-                      fullName: chief.fullName,
-                      role: chief.role,
-                      picture: chief.picture ? [chief.picture] : [],
-                    }}
-                  />
-                  <DeleteOfficialDialog
-                    id={chief.id}
-                    type={type}
-                    officialName={chief.fullName}
-                  />
-                </div>
+                {isAuthenticated && (
+                  <div className="absolute top-2 right-2 flex gap-0.5">
+                    <EditOfficialDialog
+                      id={chief.id}
+                      type={type}
+                      takenRoles={allTakenSingletonRoles}
+                      defaultValues={{
+                        fullName: chief.fullName,
+                        role: chief.role,
+                        picture: chief.picture ? [chief.picture] : [],
+                      }}
+                    />
+                    <DeleteOfficialDialog
+                      id={chief.id}
+                      type={type}
+                      officialName={chief.fullName}
+                    />
+                  </div>
+                )}
                 <Avatar className="size-16">
                   <AvatarImage
                     src={
@@ -158,23 +166,25 @@ function OfficialsSection({
                         {official.role}
                       </p>
                     </div>
-                    <div className="flex gap-0.5 shrink-0">
-                      <EditOfficialDialog
-                        id={official.id}
-                        type={type}
-                        takenRoles={allTakenSingletonRoles}
-                        defaultValues={{
-                          fullName: official.fullName,
-                          role: official.role,
-                          picture: official.picture ? [official.picture] : [],
-                        }}
-                      />
-                      <DeleteOfficialDialog
-                        id={official.id}
-                        type={type}
-                        officialName={official.fullName}
-                      />
-                    </div>
+                    {isAuthenticated && (
+                      <div className="flex gap-0.5 shrink-0">
+                        <EditOfficialDialog
+                          id={official.id}
+                          type={type}
+                          takenRoles={allTakenSingletonRoles}
+                          defaultValues={{
+                            fullName: official.fullName,
+                            role: official.role,
+                            picture: official.picture ? [official.picture] : [],
+                          }}
+                        />
+                        <DeleteOfficialDialog
+                          id={official.id}
+                          type={type}
+                          officialName={official.fullName}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -186,10 +196,21 @@ function OfficialsSection({
   );
 }
 
-export default function AboutUsPageClient() {
+export default function AboutUsPageDashboard() {
+  return (
+    <AboutUsProvider>
+      <AboutUsPageContent />
+    </AboutUsProvider>
+  );
+}
+
+function AboutUsPageContent() {
   const { profile, barangayName, barangayLogoUrl, skLogoUrl } =
     useBarangayProfile();
   const { barangayOfficials, skOfficials } = useAboutUs();
+  const { userProfile } = useAuth();
+  const isAuthenticated =
+    userProfile?.role === "Admin" || userProfile?.role === "Super Admin";
 
   const barangayProfile = {
     name: profile?.name || PROFILE_FALLBACK.name,
@@ -232,17 +253,19 @@ export default function AboutUsPageClient() {
                 </p>
               </div>
             </div>
-            <EditHeaderDialog
-              defaultValues={{
-                name: barangayProfile.name,
-                address: barangayProfile.address,
-                tagline: barangayProfile.tagline,
-                barangayLogo: profile?.barangayLogo
-                  ? [profile.barangayLogo]
-                  : [],
-                skLogo: profile?.skLogo ? [profile.skLogo] : [],
-              }}
-            />
+            {isAuthenticated && (
+              <EditHeaderDialog
+                defaultValues={{
+                  name: barangayProfile.name,
+                  address: barangayProfile.address,
+                  tagline: barangayProfile.tagline,
+                  barangayLogo: profile?.barangayLogo
+                    ? [profile.barangayLogo]
+                    : [],
+                  skLogo: profile?.skLogo ? [profile.skLogo] : [],
+                }}
+              />
+            )}
           </div>
         </div>
         <CardContent className="py-4">
@@ -262,12 +285,14 @@ export default function AboutUsPageClient() {
           type="barangay"
           officials={barangayOfficials}
           logoSrc={barangayLogoUrl ?? "/logo.png"}
+          isAuthenticated={isAuthenticated}
         />
         <OfficialsSection
           title="Sangguniang Kabataan"
           type="sk"
           officials={skOfficials}
           logoSrc={skLogoUrl ?? "/logo.png"}
+          isAuthenticated={isAuthenticated}
         />
       </div>
     </div>

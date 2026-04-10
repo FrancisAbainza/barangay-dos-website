@@ -1,15 +1,15 @@
 "use client";
 
+import AboutUsPageDashboard from "@/components/about-us/about-us-page-dashboard";
 import PublicHeader from "@/components/public-header";
 import PublicFooter from "@/components/public-footer";
-import { NewsPageDashboard } from "@/components/news/news-page-dashboard";
 
-export default function NewsPage() {
+export default function AboutUsPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <PublicHeader />
       <main className="px-4 py-4">
-        <NewsPageDashboard />
+        <AboutUsPageDashboard />
       </main>
       <PublicFooter />
     </div>

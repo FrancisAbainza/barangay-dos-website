@@ -106,43 +106,45 @@ export function PostBody({
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 text-muted-foreground shrink-0"
-                >
-                  <MoreVertical className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => toggleSavedPost(post.id)}>
-                  {isSaved ? (
-                    <><BookmarkCheck className="size-4" />Unsave post</>
-                  ) : (
-                    <><Bookmark className="size-4" />Save post</>
-                  )}
-                </DropdownMenuItem>
-                {canManage && (
-                  <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="size-4" />
-                    Edit
-                  </DropdownMenuItem>
-                )}
-                {canManage && (
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onClick={() => removePost(post.id)}
+          {uid && (
+            <div className="flex items-center gap-1 shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-7 text-muted-foreground shrink-0"
                   >
-                    <Trash2 className="size-4" />
-                    Delete
+                    <MoreVertical className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => toggleSavedPost(post.id)}>
+                    {isSaved ? (
+                      <><BookmarkCheck className="size-4" />Unsave post</>
+                    ) : (
+                      <><Bookmark className="size-4" />Save post</>
+                    )}
                   </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                  {canManage && (
+                    <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                      <Pencil className="size-4" />
+                      Edit
+                    </DropdownMenuItem>
+                  )}
+                  {canManage && (
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => removePost(post.id)}
+                    >
+                      <Trash2 className="size-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
         </div>
 
         <Badge className={cn("gap-1 mt-3", categoryConfig.className)}>
@@ -223,7 +225,7 @@ export function PostBody({
       <Separator className="mt-2" />
 
       {/* ── Action Buttons ── */}
-      <div className="px-2 py-1 grid grid-cols-4">
+      {uid && <div className="px-2 py-1 grid grid-cols-4">
         <Button
           variant="ghost"
           size="sm"
@@ -272,7 +274,7 @@ export function PostBody({
           <Facebook className="size-4" />
           <span className="hidden sm:inline">Share</span>
         </Button>
-      </div>
+      </div>}
 
       <EditNewsDialog
         open={editDialogOpen}

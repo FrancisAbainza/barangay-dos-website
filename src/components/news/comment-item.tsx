@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, Send } from "lucide-react";
@@ -13,13 +14,13 @@ import { ReplyItem } from "./reply-item";
 
 export function CommentItem({
   comment,
-  onAddReply,
+  postId,
 }: {
   comment: Comment;
-  onAddReply: (commentId: string, text: string) => void;
+  postId: string;
 }) {
   const { userProfile } = useAuth();
-  const { authors } = useNews();
+  const { authors, addReply, deleteComment } = useNews();
   const currentUser = userProfile?.fullName ?? "Guest User";
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(true);
@@ -29,9 +30,14 @@ export function CommentItem({
   const authorName = author?.fullName ?? comment.authorId;
   const authorAvatar = author?.avatarUrl;
 
+  const canDelete =
+    userProfile?.uid === comment.authorId ||
+    userProfile?.role === "Admin" ||
+    userProfile?.role === "Super Admin";
+
   function handleSubmitReply() {
     if (!replyText.trim()) return;
-    onAddReply(comment.id, replyText.trim());
+    addReply(postId, comment.id, replyText.trim());
     setReplyText("");
     setShowReplyForm(false);
   }
@@ -48,9 +54,14 @@ export function CommentItem({
         </Avatar>
         <div className="flex-1 min-w-0">
           <div className="bg-muted rounded-lg px-3 py-2">
-            <p className="text-sm font-semibold leading-tight">
-              {authorName}
-            </p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-semibold leading-tight">
+                {authorName}
+              </p>
+              {(author?.role === "Admin" || author?.role === "Super Admin") && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 leading-none">Admin</Badge>
+              )}
+            </div>
             <p className="text-sm mt-0.5 whitespace-pre-wrap wrap-break-word">
               {comment.content}
             </p>
@@ -59,12 +70,22 @@ export function CommentItem({
             <p className="text-xs text-muted-foreground">
               {formatDate(comment.date)}
             </p>
-            <button
-              className="text-xs font-semibold text-primary hover:underline"
-              onClick={() => setShowReplyForm((v) => !v)}
-            >
-              Reply
-            </button>
+            {userProfile && (
+              <button
+                className="text-xs font-semibold text-primary hover:underline"
+                onClick={() => setShowReplyForm((v) => !v)}
+              >
+                Reply
+              </button>
+            )}
+            {canDelete && (
+              <button
+                className="text-xs font-semibold text-destructive hover:underline"
+                onClick={() => deleteComment(postId, comment.id)}
+              >
+                Delete
+              </button>
+            )}
             {comment.replies.length > 0 && (
               <button
                 className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-0.5"
@@ -87,13 +108,13 @@ export function CommentItem({
       {showReplies && comment.replies.length > 0 && (
         <div className="ml-9 space-y-1">
           {comment.replies.map((reply) => (
-            <ReplyItem key={reply.id} reply={reply} />
+            <ReplyItem key={reply.id} reply={reply} postId={postId} commentId={comment.id} />
           ))}
         </div>
       )}
 
       {/* Reply input */}
-      {showReplyForm && (
+      {userProfile && showReplyForm && (
         <div className="ml-9 flex gap-2 pt-1">
           <Avatar size="sm">
             <AvatarFallback className="text-xs">

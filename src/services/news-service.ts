@@ -300,3 +300,31 @@ export async function addReplyToComment(
     tx.update(ref, { comments });
   });
 }
+
+export async function deleteCommentFromPost(postId: string, commentId: string): Promise<void> {
+  const ref = adminDb.collection(NEWS_COLLECTION).doc(postId);
+  await adminDb.runTransaction(async (tx) => {
+    const doc = await tx.get(ref);
+    if (!doc.exists) return;
+    const data = doc.data()!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const comments = (data.comments ?? []).filter((c: any) => c.id !== commentId);
+    tx.update(ref, { comments });
+  });
+}
+
+export async function deleteReplyFromComment(postId: string, commentId: string, replyId: string): Promise<void> {
+  const ref = adminDb.collection(NEWS_COLLECTION).doc(postId);
+  await adminDb.runTransaction(async (tx) => {
+    const doc = await tx.get(ref);
+    if (!doc.exists) return;
+    const data = doc.data()!;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const comments = (data.comments ?? []).map((c: any) =>
+      c.id === commentId
+        ? { ...c, replies: (c.replies ?? []).filter((r: any) => r.id !== replyId) }
+        : c,
+    );
+    tx.update(ref, { comments });
+  });
+}

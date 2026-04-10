@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Megaphone, AlertTriangle, CalendarDays } from "lucide-react";
 import { NewsProvider, useNews } from "@/contexts/news-context";
+import { useAuth } from "@/contexts/auth-context";
 import { useBarangayProfile } from "@/contexts/barangay-profile-context";
 import { PostFeed } from "@/components/news/post-feed";
 import { PinnedPostsPanel } from "@/components/news/pinned-posts-panel";
@@ -19,8 +20,10 @@ export function NewsPageDashboard() {
 }
 
 function NewsPageContent() {
-  const { posts, pinnedPosts, hasMore, loadMore, isLoadingMore, categoryFeeds, loadMoreCategory } = useNews();
+  const { posts, hasMore, loadMore, isLoadingMore, categoryFeeds, loadMoreCategory } = useNews();
   const { barangayName } = useBarangayProfile();
+  const { userProfile } = useAuth();
+  const isAuthenticated = !!userProfile;
 
   const loadMoreAnnouncements = useCallback(() => loadMoreCategory("Announcement"), [loadMoreCategory]);
   const loadMoreEvents = useCallback(() => loadMoreCategory("Event"), [loadMoreCategory]);
@@ -43,7 +46,7 @@ function NewsPageContent() {
             </p>
           </div>
         </div>
-        <CreateNewsDialog />
+        {(isAuthenticated && (userProfile.role === "Admin" || userProfile.role === "Super Admin")) && <CreateNewsDialog />}
       </div>
 
       <div className="flex flex-col xl:flex-row gap-6">
@@ -116,7 +119,6 @@ function NewsPageContent() {
           </Tabs>
         </div>
 
-        {/* ── Saved Posts Sidebar ── */}
         <div className="order-2 xl:order-3 xl:w-64 xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto">
           <SavedPostsPanel />
         </div>

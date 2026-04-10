@@ -4,13 +4,15 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Bookmark } from "lucide-react";
+import { Bookmark, LogIn } from "lucide-react";
 import { useNews } from "@/contexts/news-context";
+import { useAuth } from "@/contexts/auth-context";
 import { PostPreview } from "./post-preview";
 import { PostDetailDialog } from "./post-detail-dialog";
 
 export function SavedPostsPanel() {
   const { savedPosts } = useNews();
+  const { userProfile } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
@@ -26,7 +28,12 @@ export function SavedPostsPanel() {
             <Bookmark className="size-3" />
             Saved Posts
           </div>
-          {savedPosts.length === 0 ? (
+          {!userProfile ? (
+            <p className="text-xs text-muted-foreground text-center py-3 leading-relaxed flex flex-col items-center gap-1.5">
+              <LogIn className="size-4" />
+              Log in to save posts.
+            </p>
+          ) : savedPosts.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-3 leading-relaxed">
               No saved posts yet.
               <br />

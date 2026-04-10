@@ -2,14 +2,13 @@ import DashboardSidebar from "@/components/dashboard-sidebar";
 import DashboardHeader from "@/components/dashboard-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
-
 export default function ResidentLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen>
       <DashboardSidebar />
       <SidebarInset className="flex flex-1 flex-col overflow-y-auto">
         <DashboardHeader />
-        <main className="pt-16">
+        <main className="px-6 py-20 md:py-6">
           {children}
         </main>
       </SidebarInset>

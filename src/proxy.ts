@@ -19,7 +19,7 @@ export async function proxy(request: NextRequest) {
     const isAdmin = claims?.admin === true;
 
     // Redirect from home page based on role
-    if (pathname === '/') {
+    if (pathname === '/' || pathname === '/news' || pathname === '/about-us') {
       return NextResponse.redirect(new URL(isAdmin ? '/staff' : '/resident', request.url));
     }
 
@@ -44,5 +44,5 @@ export async function proxy(request: NextRequest) {
 
 // Optimization: Only run middleware on these paths
 export const config = {
-  matcher: ['/resident/:path*', '/staff/:path*', '/', '/profile/:path*'],
+  matcher: ['/resident/:path*', '/staff/:path*', '/', '/profile/:path*', '/news/:path*', '/about-us/:path*'],
 };

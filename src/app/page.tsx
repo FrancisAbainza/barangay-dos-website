@@ -3,7 +3,7 @@
 import {
   Megaphone,
   FileText,
-  CalendarCheck,
+  GraduationCap,
   AlertTriangle,
   Eye,
   Shield,
@@ -15,7 +15,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import ResidentAuthDialog from "@/components/resident-auth-dialog";
 import StaffAuthDialog from "@/components/staff-auth-dialog";
-import Image from "next/image";
+import PublicHeader from "@/components/public-header";
+import PublicFooter from "@/components/public-footer";
 import { useBarangayProfile } from "@/contexts/barangay-profile-context";
 
 const getFeatures = (name: string) => [
@@ -34,11 +35,11 @@ const getFeatures = (name: string) => [
     badge: "Services",
   },
   {
-    icon: CalendarCheck,
-    title: "Court Reservations",
+    icon: GraduationCap,
+    title: "Scholarship Processing",
     description:
-      "Book the barangay basketball court or multi-purpose hall for your events and activities.",
-    badge: "Facilities",
+      "Apply for barangay scholarship programs and track your application status online.",
+    badge: "Education",
   },
   {
     icon: AlertTriangle,
@@ -64,35 +65,12 @@ const getFeatures = (name: string) => [
 ];
 
 export default function Home() {
-  const { barangayName, barangayLogoUrl } = useBarangayProfile();
+  const { barangayName } = useBarangayProfile();
   const features = getFeatures(barangayName);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="border-b border-border bg-card px-6 py-2">
-        <div className="mx-auto flex max-w-6xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Image
-              src={barangayLogoUrl ?? "/no-image.jpg"}
-              alt={`${barangayName} logo`}
-              width={75}
-              height={75}
-            />
-            <div>
-              <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                Republic of the Philippines
-              </p>
-              <p className="text-xl font-bold leading-tight text-foreground">
-                {barangayName}
-              </p>
-            </div>
-          </div>
-          <Badge className="hidden sm:flex">
-            Official Portal
-          </Badge>
-        </div>
-      </header>
+      <PublicHeader />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-primary px-6 py-24 text-primary-foreground">
@@ -100,7 +78,7 @@ export default function Home() {
           <div className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-white" />
           <div className="absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-white" />
         </div>
-        <div className="relative mx-auto max-w-6xl text-center">
+        <div className="relative container m-auto text-center">
           <Badge className="mb-6 bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30">
             Digital Barangay Services
           </Badge>
@@ -125,7 +103,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="px-6 py-20">
-        <div className="mx-auto max-w-6xl">
+        <div className="container m-auto">
           <div className="mb-12 text-center">
             <h2 className="mb-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Everything You Need
@@ -165,7 +143,7 @@ export default function Home() {
 
       {/* Portal Entry Section */}
       <section className="bg-muted/50 px-6 py-20">
-        <div className="mx-auto max-w-6xl">
+        <div className="container m-auto">
           <div className="mb-10 text-center">
             <h2 className="mb-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Choose Your Portal
@@ -214,17 +192,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-card px-6 py-8">
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} {barangayName} &mdash; Official Digital Portal. All rights reserved.
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground/70">
-            Republic of the Philippines
-          </p>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }
