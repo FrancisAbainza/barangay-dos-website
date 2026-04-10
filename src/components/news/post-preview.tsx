@@ -1,11 +1,12 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { NewsPost, CATEGORY_CONFIG } from "@/schemas/news-schema";
-import { formatDate, getInitials } from "./news-helpers";
+import { formatDate, getInitials } from "@/lib/utils";
+import { useNews } from "@/contexts/news-context";
 
 export function PostPreview({
   post,
@@ -14,6 +15,10 @@ export function PostPreview({
   post: NewsPost;
   onClick?: () => void;
 }) {
+  const { authors } = useNews();
+  const author = authors[post.authorId];
+  const authorName = author?.fullName ?? "Unknown";
+
   const categoryConfig = CATEGORY_CONFIG[post.category];
   const CategoryIcon = categoryConfig.icon;
 
@@ -47,12 +52,13 @@ export function PostPreview({
       <Separator />
       <div className="flex items-center gap-1.5">
         <Avatar size="sm">
+          <AvatarImage src={author?.avatarUrl} />
           <AvatarFallback className="text-xs">
-            {getInitials(post.authorName)}
+            {getInitials(authorName)}
           </AvatarFallback>
         </Avatar>
         <div className="min-w-0">
-          <p className="text-xs font-medium truncate">{post.authorName}</p>
+          <p className="text-xs font-medium truncate">{authorName}</p>
           <p className="text-xs text-muted-foreground">
             {formatDate(post.date)}
           </p>

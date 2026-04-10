@@ -6,21 +6,28 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, Send } from "lucide-react";
 import { Comment } from "@/schemas/news-schema";
-import { formatDate, getInitials } from "./news-helpers";
+import { useAuth } from "@/contexts/auth-context";
+import { useNews } from "@/contexts/news-context";
+import { formatDate, getInitials } from "@/lib/utils";
 import { ReplyItem } from "./reply-item";
 
 export function CommentItem({
   comment,
-  currentUser,
   onAddReply,
 }: {
   comment: Comment;
-  currentUser: string;
   onAddReply: (commentId: string, text: string) => void;
 }) {
+  const { userProfile } = useAuth();
+  const { authors } = useNews();
+  const currentUser = userProfile?.fullName ?? "Guest User";
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(true);
   const [replyText, setReplyText] = useState("");
+
+  const author = authors[comment.authorId];
+  const authorName = author?.fullName ?? comment.authorId;
+  const authorAvatar = author?.avatarUrl;
 
   function handleSubmitReply() {
     if (!replyText.trim()) return;
@@ -34,15 +41,15 @@ export function CommentItem({
       {/* Comment bubble */}
       <div className="flex gap-2">
         <Avatar size="sm">
-          <AvatarImage src={comment.authorAvatarUrl} />
+          <AvatarImage src={authorAvatar} />
           <AvatarFallback className="text-xs">
-            {getInitials(comment.authorName)}
+            {getInitials(authorName)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
           <div className="bg-muted rounded-lg px-3 py-2">
             <p className="text-sm font-semibold leading-tight">
-              {comment.authorName}
+              {authorName}
             </p>
             <p className="text-sm mt-0.5 whitespace-pre-wrap wrap-break-word">
               {comment.content}

@@ -1,15 +1,17 @@
 "use client";
 
-
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 import NewsForm from "@/components/news/news-form";
-import { NewsFormValues } from "@/schemas/news-schema";
-import { NewsPost } from "@/schemas/news-schema";
+import { NewsFormValues, NewsPost } from "@/schemas/news-schema";
+import { useNews } from "@/contexts/news-context";
+import { updateNewsPost } from "@/services/news-service";
+import { uploadMultipleMedia, uploadMultipleAttachments } from "@/services/storage-service";
 
 interface EditNewsDialogProps {
   open: boolean;
@@ -22,6 +24,8 @@ export function EditNewsDialog({
   onOpenChange,
   post,
 }: EditNewsDialogProps) {
+  const { updatePost } = useNews();
+
   const defaultValues: NewsFormValues = {
     title: post.title,
     category: post.category,
@@ -29,21 +33,46 @@ export function EditNewsDialog({
     pinned: post.pinned ?? false,
     media:
       post.media?.map((item) => ({
-        uri: item.url,
+        uri: item.uri,
+        path: item.path,
         type: item.type,
       })) ?? [],
     attachments:
       post.attachments?.map((att) => ({
-        uri: att.url,
+        uri: att.uri,
+        path: att.path,
         name: att.name,
         size: att.size,
       })) ?? [],
   };
 
-  function handleSubmit(data: NewsFormValues) {
-    // TODO: connect to database
-    console.log(data);
-    onOpenChange(false);
+  async function handleSubmit(data: NewsFormValues) {
+    try {
+      const basePath = `news/${post.id}`;
+
+      const media =
+        data.media && data.media.length > 0
+          ? await uploadMultipleMedia(data.media, `${basePath}/media`)
+          : undefined;
+
+      const attachments =
+        data.attachments && data.attachments.length > 0
+          ? await uploadMultipleAttachments(data.attachments, `${basePath}/attachments`)
+          : undefined;
+
+      const updated = await updateNewsPost(post.id, {
+        ...data,
+        media,
+        attachments,
+      });
+
+      updatePost(updated);
+      toast.success("Post updated successfully.");
+      onOpenChange(false);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update post.");
+    }
   }
 
   return (

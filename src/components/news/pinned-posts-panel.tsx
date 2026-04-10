@@ -5,28 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Pin } from "lucide-react";
-import { NewsPost } from "@/schemas/news-schema";
+import { useNews } from "@/contexts/news-context";
 import { PostPreview } from "./post-preview";
 import { PostDetailDialog } from "./post-detail-dialog";
 
-export function PinnedPostsPanel({
-  posts,
-  savedPostIds,
-  onToggleSave,
-  currentUserName,
-}: {
-  posts: NewsPost[];
-  savedPostIds: Set<string>;
-  onToggleSave: (id: string) => void;
-  currentUserName: string;
-}) {
+export function PinnedPostsPanel() {
+  const { pinnedPosts } = useNews();
   const [expanded, setExpanded] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-  if (posts.length === 0) return null;
+  if (pinnedPosts.length === 0) return null;
 
-  const first = posts[0];
-  const more = posts.slice(1);
+  const first = pinnedPosts[0];
+  const more = pinnedPosts.slice(1);
+
+  const selectedPost = selectedPostId
+    ? (pinnedPosts.find((p) => p.id === selectedPostId) ?? null)
+    : null;
 
   return (
     <>
@@ -34,22 +29,22 @@ export function PinnedPostsPanel({
         <CardContent className="p-3 flex flex-col gap-2.5">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
             <Pin className="size-3" />
-            Pinned {posts.length > 1 ? "Posts" : "Post"}
+            Pinned {pinnedPosts.length > 1 ? "Posts" : "Post"}
           </div>
-          <PostPreview post={first} onClick={() => setSelectedPost(first)} />
+          <PostPreview post={first} onClick={() => setSelectedPostId(first.id)} />
           {expanded && more.length > 0 && (
             <div className="space-y-2.5">
               {more.map((post) => (
                 <div key={post.id} className="pt-2.5 border-t border-border">
                   <PostPreview
                     post={post}
-                    onClick={() => setSelectedPost(post)}
+                    onClick={() => setSelectedPostId(post.id)}
                   />
                 </div>
               ))}
             </div>
           )}
-          {posts.length > 1 && (
+          {pinnedPosts.length > 1 && (
             <>
               <Separator />
               <Button
@@ -58,7 +53,7 @@ export function PinnedPostsPanel({
                 className="w-full h-7 text-xs text-muted-foreground"
                 onClick={() => setExpanded((v) => !v)}
               >
-                {expanded ? "Show Less" : `View All (${posts.length})`}
+                {expanded ? "Show Less" : `View All (${pinnedPosts.length})`}
               </Button>
             </>
           )}
@@ -67,11 +62,8 @@ export function PinnedPostsPanel({
       {selectedPost && (
         <PostDetailDialog
           post={selectedPost}
-          isSaved={savedPostIds.has(selectedPost.id)}
-          onToggleSave={onToggleSave}
-          currentUserName={currentUserName}
           open={selectedPost !== null}
-          onClose={() => setSelectedPost(null)}
+          onClose={() => setSelectedPostId(null)}
         />
       )}
     </>

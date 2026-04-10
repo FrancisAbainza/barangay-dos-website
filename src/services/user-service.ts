@@ -16,6 +16,7 @@ function docToProfile(doc: FirebaseFirestore.DocumentSnapshot): UserProfile {
     email: data.email ?? null,
     role: data.role,
     banned: data.banned ?? false,
+    savedPostIds: Array.isArray(data.savedPostIds) ? data.savedPostIds : [],
     profilePicture: data.profilePicture ? [data.profilePicture] : [],
     createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
     updatedAt: (data.updatedAt as Timestamp).toDate().toISOString(),
@@ -121,4 +122,16 @@ export async function deleteStaff(userId: string): Promise<void> {
     adminAuth.deleteUser(userId),
   ]);
   revalidatePath('/staff/user-management');
+}
+
+export async function toggleSavedPostForUser(
+  userId: string,
+  postId: string,
+  save: boolean,
+): Promise<void> {
+  await adminDb.collection(USERS_COLLECTION).doc(userId).update({
+    savedPostIds: save
+      ? FieldValue.arrayUnion(postId)
+      : FieldValue.arrayRemove(postId),
+  });
 }

@@ -19,58 +19,32 @@ export const newsFormSchema = z.object({
 
 export type NewsFormValues = z.infer<typeof newsFormSchema>;
 
-// NewsPostData extends the form values with server-side author metadata
-// that is not part of the form itself (resolved from the auth context).
-export interface NewsPostData extends NewsFormValues {
-  authorId: string;
-  authorName: string;
-  authorAvatarUrl?: string;
-  authorRole: string;
-}
-
 export interface Reply {
   id: string;
-  authorName: string;
-  authorAvatarUrl?: string;
+  authorId: string;
   content: string;
   date: Date;
 }
-
 export interface Comment {
   id: string;
-  authorName: string;
-  authorAvatarUrl?: string;
+  authorId: string;
   content: string;
   date: Date;
   replies: Reply[];
-}
-
-export interface Attachment {
-  id: string;
-  name: string;
-  url: string;
-  size: string;
-}
-
-export interface MediaEntry {
-  url: string;
-  type: "image" | "video";
 }
 
 export interface NewsPost {
   id: string;
   title: string;
   content: string;
-  media?: MediaEntry[];
-  authorName: string;
-  authorAvatarUrl?: string;
-  authorRole: string;
+  media?: MediaItem[];
+  authorId: string;
   date: Date;
   category: Category;
-  likes: number;
-  dislikes: number;
+  likes: string[];
+  dislikes: string[];
   comments: Comment[];
-  attachments?: Attachment[];
+  attachments?: AttachmentItem[];
   pinned?: boolean;
 }
 

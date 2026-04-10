@@ -16,6 +16,7 @@ export interface UserProfile extends EditProfileFormValues  {
   email: string | null;
   role: string;
   banned: boolean;
+  savedPostIds: string[];
   createdAt: string;
   updatedAt: string;
 };

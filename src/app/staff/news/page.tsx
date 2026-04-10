@@ -1,14 +1,5 @@
-import { getNewsPosts } from "@/services/news-service";
-import { getBarangayProfile } from "@/services/about-us-service";
-import { NewsPageClient } from "@/components/news/news-page-client";
+import { NewsPageDashboard } from "@/components/news/news-page-dashboard";
 
-export default async function NewsPage() {
-  const [posts, barangayProfile] = await Promise.all([
-    getNewsPosts(),
-    getBarangayProfile(),
-  ]);
-
-  const barangayName = barangayProfile?.name ?? "Barangay Dos";
-
-  return <NewsPageClient posts={posts} barangayName={barangayName} />;
+export default function NewsPage() {
+  return <NewsPageDashboard barangayName="Barangay Dos" />;
 }

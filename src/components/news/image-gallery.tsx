@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MediaEntry } from "@/schemas/news-schema";
+import type { MediaItem } from "@/components/media-uploader";
 
-export function MediaGallery({ media }: { media: MediaEntry[] }) {
+export function MediaGallery({ media }: { media: MediaItem[] }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const count = media.length;
 
@@ -38,7 +38,7 @@ export function MediaGallery({ media }: { media: MediaEntry[] }) {
             {item.type === "video" ? (
               <>
                 <video
-                  src={item.url}
+                  src={item.uri as string}
                   preload="metadata"
                   className="w-full h-full object-cover"
                   muted
@@ -49,7 +49,7 @@ export function MediaGallery({ media }: { media: MediaEntry[] }) {
               </>
             ) : (
               <Image
-                src={item.url}
+                src={item.uri as string}
                 alt={`Post image ${i + 1}`}
                 fill
                 className="object-cover hover:brightness-90 transition-[filter]"
@@ -77,21 +77,20 @@ export function MediaGallery({ media }: { media: MediaEntry[] }) {
         >
           <DialogTitle className="sr-only">Media viewer</DialogTitle>
           {lightboxIndex !== null && (
-            <div className="relative flex items-center justify-center">
+            <div className="relative flex items-center justify-center w-full min-h-[40vh] max-h-[85vh]">
               {media[lightboxIndex].type === "video" ? (
                 <video
-                  src={media[lightboxIndex].url}
+                  src={media[lightboxIndex].uri as string}
                   controls
                   autoPlay
-                  className=" max-w-full"
+                  className="max-w-full max-h-[85vh]"
                 />
               ) : (
-                <Image
-                  src={media[lightboxIndex].url}
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={media[lightboxIndex].uri as string}
                   alt={`Media ${lightboxIndex + 1} of ${media.length}`}
-                  fill
-                  className="object-contain"
-                  unoptimized
+                  className="max-w-full max-h-[85vh] object-contain"
                 />
               )}
               {media.length > 1 && (
