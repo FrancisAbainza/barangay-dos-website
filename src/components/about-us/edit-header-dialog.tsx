@@ -5,7 +5,6 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,8 +35,7 @@ export default function EditHeaderDialog({
   defaultValues,
 }: EditHeaderDialogProps) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
-  const { refreshBarangayProfile } = useBarangayProfile();
+  const { updateProfile } = useBarangayProfile();
 
   const {
     register,
@@ -93,9 +91,15 @@ export default function EditHeaderDialog({
       ];
       await deleteImagesByPath(logosToDelete);
 
-      // Re-run server components on the current page to sync server-rendered data.
-      router.refresh();
-      await refreshBarangayProfile();
+      // Optimistically update the cached profile so the UI reflects the change
+      // immediately without refetching from the database.
+      updateProfile({
+        name,
+        address,
+        tagline,
+        barangayLogo: uploadedBarangayLogo[0],
+        skLogo: uploadedSkLogo[0],
+      });
       toast.success("Header updated successfully!");
       setOpen(false);
     } catch (error) {

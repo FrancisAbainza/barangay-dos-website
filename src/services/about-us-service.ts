@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { adminDb } from "@/lib/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
 import type { ImageItem } from "@/components/multi-image-uploader";
@@ -70,10 +69,10 @@ export async function getOfficials(type: OfficialType): Promise<Official[]> {
 export async function addOfficial(
   type: OfficialType,
   data: { fullName: string; role: string; picture?: ImageItem },
-): Promise<void> {
+): Promise<string> {
   const collectionName = OFFICIALS_COLLECTIONS[type];
 
-  await adminDb.collection(collectionName).add({
+  const docRef = await adminDb.collection(collectionName).add({
     fullName: data.fullName,
     role: data.role,
     // Only store picture field if a picture was uploaded.
@@ -82,7 +81,7 @@ export async function addOfficial(
     updatedAt: FieldValue.serverTimestamp(),
   });
 
-  revalidatePath("/staff/about-us");
+  return docRef.id;
 }
 
 export async function updateOfficial(
@@ -100,8 +99,6 @@ export async function updateOfficial(
     picture: data.picture ?? FieldValue.delete(),
     updatedAt: FieldValue.serverTimestamp(),
   });
-
-  revalidatePath("/staff/about-us");
 }
 
 export async function deleteOfficial(
@@ -110,7 +107,6 @@ export async function deleteOfficial(
 ): Promise<void> {
   const collectionName = OFFICIALS_COLLECTIONS[type];
   await adminDb.collection(collectionName).doc(id).delete();
-  revalidatePath("/staff/about-us");
 }
 
 export async function updateBarangayHeader(data: {
@@ -135,6 +131,4 @@ export async function updateBarangayHeader(data: {
     },
     { merge: true },
   );
-
-  revalidatePath("/staff/about-us");
 }

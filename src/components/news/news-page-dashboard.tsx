@@ -4,21 +4,23 @@ import { useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Megaphone, AlertTriangle, CalendarDays } from "lucide-react";
 import { NewsProvider, useNews } from "@/contexts/news-context";
+import { useBarangayProfile } from "@/contexts/barangay-profile-context";
 import { PostFeed } from "@/components/news/post-feed";
 import { PinnedPostsPanel } from "@/components/news/pinned-posts-panel";
 import { SavedPostsPanel } from "@/components/news/saved-posts-panel";
 import { CreateNewsDialog } from "@/components/news/create-news-dialog";
 
-export function NewsPageDashboard({ barangayName }: { barangayName: string }) {
+export function NewsPageDashboard() {
   return (
     <NewsProvider>
-      <NewsPageContent barangayName={barangayName} />
+      <NewsPageContent />
     </NewsProvider>
   );
 }
 
-function NewsPageContent({ barangayName }: { barangayName: string }) {
+function NewsPageContent() {
   const { posts, pinnedPosts, hasMore, loadMore, isLoadingMore, categoryFeeds, loadMoreCategory } = useNews();
+  const { barangayName } = useBarangayProfile();
 
   const loadMoreAnnouncements = useCallback(() => loadMoreCategory("Announcement"), [loadMoreCategory]);
   const loadMoreEvents = useCallback(() => loadMoreCategory("Event"), [loadMoreCategory]);
@@ -46,11 +48,11 @@ function NewsPageContent({ barangayName }: { barangayName: string }) {
 
       <div className="flex flex-col xl:flex-row gap-6">
         {/* ── Pinned Posts Panel ── */}
-        {pinnedPosts.length > 0 && (
-          <div className="order-1 xl:w-64 xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto">
-            <PinnedPostsPanel />
-          </div>
-        )}
+
+        <div className="order-1 xl:w-64 xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto">
+          <PinnedPostsPanel />
+        </div>
+
 
         {/* ── Main Feed ── */}
         <div className="order-3 xl:order-2 flex-1 min-w-0 space-y-4">

@@ -5,7 +5,6 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -36,6 +35,7 @@ import {
 import type { ImageItem } from "@/components/multi-image-uploader";
 import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
 import { updateOfficial } from "@/services/about-us-service";
+import { useAboutUs } from "@/contexts/about-us-context";
 
 interface EditOfficialDialogProps {
   id: string;
@@ -56,7 +56,7 @@ export default function EditOfficialDialog({
 }: EditOfficialDialogProps) {
   const roles = type === "barangay" ? BARANGAY_ROLES : SK_ROLES;
   const [open, setOpen] = useState(false);
-  const router = useRouter();
+  const { updateOfficial: updateOfficialInState } = useAboutUs();
 
   const {
     register,
@@ -112,8 +112,13 @@ export default function EditOfficialDialog({
       );
       await deleteImagesByPath(picturesToDelete);
 
-      // Re-run server components on the current page to sync server-rendered data.
-      router.refresh();
+      // Optimistically update the official in local state so the UI reflects
+      // the change immediately without refetching from the database.
+      updateOfficialInState(type, id, {
+        fullName,
+        role,
+        picture: uploadedPictures[0],
+      });
       toast.success("Official updated successfully!");
       setOpen(false);
     } catch (error) {

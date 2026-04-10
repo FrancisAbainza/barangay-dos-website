@@ -80,7 +80,7 @@ export function PostBody({
   return (
     <>
       {/* ── Post Header ── */}
-      <div className="px-4 pt-4 pb-3">
+      <div className="px-4 pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-3">
             <Avatar>
@@ -107,10 +107,6 @@ export function PostBody({
             </div>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <Badge className={cn("gap-1", categoryConfig.className)}>
-              <CategoryIcon className="size-3" />
-              {post.category}
-            </Badge>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -149,7 +145,11 @@ export function PostBody({
           </div>
         </div>
 
-        <h2 className="font-bold mt-3 leading-snug text-base">
+        <Badge className={cn("gap-1 mt-3", categoryConfig.className)}>
+          <CategoryIcon className="size-3" />
+          {post.category}
+        </Badge>
+        <h2 className="font-bold mt-1.5 leading-snug text-base">
           {post.title}
         </h2>
         <p className="text-sm text-foreground/80 mt-1.5 whitespace-pre-wrap leading-relaxed">

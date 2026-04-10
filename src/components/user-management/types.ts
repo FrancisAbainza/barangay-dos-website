@@ -38,11 +38,3 @@ export const confirmMeta: Record<
     destructive: true,
   },
 };
-
-export function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-PH', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}

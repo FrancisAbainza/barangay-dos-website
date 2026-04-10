@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { UserProfile } from '@/schemas/profile-schema';
-import { ConfirmAction, formatDate } from './types';
+import { ConfirmAction } from './types';
+import { formatShortDate } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -90,7 +91,7 @@ export function StaffTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {formatDate(member.createdAt)}
+                    {formatShortDate(member.createdAt)}
                   </TableCell>
                   {isSuperAdmin && (
                     <TableCell className="text-right">

@@ -77,7 +77,7 @@ export function MediaGallery({ media }: { media: MediaItem[] }) {
         >
           <DialogTitle className="sr-only">Media viewer</DialogTitle>
           {lightboxIndex !== null && (
-            <div className="relative flex items-center justify-center w-full min-h-[40vh] max-h-[85vh]">
+            <div className="relative flex items-center justify-center w-full max-h-[85vh]">
               {media[lightboxIndex].type === "video" ? (
                 <video
                   src={media[lightboxIndex].uri as string}

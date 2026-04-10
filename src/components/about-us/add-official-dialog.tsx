@@ -5,7 +5,6 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,6 +34,7 @@ import {
 } from "@/schemas/about-us-schema";
 import { uploadMultiplePostImages } from "@/services/storage-service";
 import { addOfficial } from "@/services/about-us-service";
+import { useAboutUs } from "@/contexts/about-us-context";
 
 interface AddOfficialDialogProps {
   title: string;
@@ -48,7 +48,7 @@ export default function AddOfficialDialog({
   takenRoles,
 }: AddOfficialDialogProps) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
+  const { addOfficial: addOfficialToState } = useAboutUs();
 
   const roles = type === "barangay" ? BARANGAY_ROLES : SK_ROLES;
 
@@ -82,16 +82,21 @@ export default function AddOfficialDialog({
       );
 
       // Persist the new official to Firestore under the correct collection.
-      // uploadedPictures[0] is undefined when no picture was selected,
-      // so the picture field is omitted from the document in that case.
-      await addOfficial(type, {
+      // The server action returns the new document ID.
+      const docId = await addOfficial(type, {
         fullName,
         role,
         picture: uploadedPictures[0],
       });
 
-      // Re-run server components on the current page to sync server-rendered data.
-      router.refresh();
+      // Optimistically add the official to local state so the UI updates
+      // immediately without refetching from the database.
+      addOfficialToState(type, {
+        id: docId,
+        fullName,
+        role,
+        picture: uploadedPictures[0],
+      });
       toast.success("Official added successfully!");
       setOpen(false);
     } catch (error) {

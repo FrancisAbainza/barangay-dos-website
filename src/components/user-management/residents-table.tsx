@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { UserProfile } from '@/schemas/profile-schema';
-import { ConfirmAction, formatDate } from './types';
+import { ConfirmAction } from './types';
+import { formatShortDate } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -76,7 +77,7 @@ export function ResidentsTable({ residents, searchKey, onConfirmAction }: Reside
                     )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {formatDate(resident.createdAt)}
+                    {formatShortDate(resident.createdAt)}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

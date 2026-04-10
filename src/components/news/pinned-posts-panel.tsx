@@ -14,8 +14,6 @@ export function PinnedPostsPanel() {
   const [expanded, setExpanded] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-  if (pinnedPosts.length === 0) return null;
-
   const first = pinnedPosts[0];
   const more = pinnedPosts.slice(1);
 
@@ -31,8 +29,12 @@ export function PinnedPostsPanel() {
             <Pin className="size-3" />
             Pinned {pinnedPosts.length > 1 ? "Posts" : "Post"}
           </div>
-          <PostPreview post={first} onClick={() => setSelectedPostId(first.id)} />
-          {expanded && more.length > 0 && (
+          {pinnedPosts.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-3 leading-relaxed">No pinned posts yet.</p>
+          ) : (
+            <PostPreview post={first} onClick={() => setSelectedPostId(first.id)} />
+          )}
+          {pinnedPosts.length > 0 && expanded && more.length > 0 && (
             <div className="space-y-2.5">
               {more.map((post) => (
                 <div key={post.id} className="pt-2.5 border-t border-border">

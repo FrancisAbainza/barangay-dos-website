@@ -4,7 +4,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export default function StaffLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider defaultOpen className="h-svh overflow-hidden">
       <DashboardSidebar />
       <SidebarInset className="flex flex-1 flex-col overflow-y-auto">
         <DashboardHeader />

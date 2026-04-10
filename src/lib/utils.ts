@@ -24,3 +24,11 @@ export function getInitials(name: string): string {
     .join("")
     .toUpperCase();
 }
+
+export function formatShortDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-PH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}

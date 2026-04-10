@@ -21,7 +21,7 @@ export function PostCard({ post }: { post: NewsPost }) {
 
   return (
     <>
-      <Card className="overflow-hidden shadow-sm py-0">
+      <Card className="overflow-hidden shadow-sm pb-0">
         <CardContent className="p-0">
           <PostBody
             post={post}

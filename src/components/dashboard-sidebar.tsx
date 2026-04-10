@@ -83,7 +83,7 @@ export default function DashboardSidebar() {
           <SidebarHeader className="flex flex-row items-center justify-center border-b border-sidebar-border py-4">
             <div className="flex flex-col items-center gap-2">
               <Image
-                src={barangayLogoUrl ?? "/no-image.jpg"}
+                src={barangayLogoUrl ?? "/logo.png"}
                 alt={`${barangayName} logo`}
                 width={150}
                 height={150}
