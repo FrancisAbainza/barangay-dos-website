@@ -9,6 +9,9 @@ import {
   Shield,
   UserCog,
   User,
+  Brain,
+  ScanText,
+  Mic,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -80,7 +83,7 @@ export default function Home() {
         </div>
         <div className="relative container m-auto text-center">
           <Badge className="mb-6 bg-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/30">
-            Digital Barangay Services
+            KaagapAI: Barangay Management System
           </Badge>
           <h1 className="mb-6 text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
             Welcome to Barangay
@@ -89,7 +92,7 @@ export default function Home() {
           </h1>
           <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-primary-foreground/80 sm:text-xl">
             Your one-stop digital portal for barangay services. Access
-            announcements, request documents, reserve facilities, and connect
+            announcements, request documents, report complaints, and connect
             with your community — all in one place.
           </p>
 
@@ -141,6 +144,65 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Emerging Technologies Section */}
+      <section className="px-6 py-20">
+        <div className="container m-auto">
+          <div className="mb-12 text-center">
+            <Badge className="mb-4">Innovation</Badge>
+            <h2 className="mb-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Powered by Emerging Technologies
+            </h2>
+            <p className="mx-auto max-w-xl text-base text-muted-foreground sm:text-lg">
+              Our system leverages cutting-edge technologies to deliver smarter,
+              faster, and more accessible barangay services.
+            </p>
+          </div>
+          <div className="grid gap-8 sm:grid-cols-3">
+            {/* AI */}
+            <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-8 text-center shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-violet-500/10 text-violet-500">
+                <Brain className="h-10 w-10" />
+              </div>
+              <Badge className="mb-3 bg-violet-500/10 text-violet-600 hover:bg-violet-500/20">AI-Powered</Badge>
+              <h3 className="mb-3 text-xl font-bold text-foreground">Artificial Intelligence</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                AI-driven insights help barangay staff make informed decisions,
+                automate routine tasks, and deliver personalized services to
+                every resident.
+              </p>
+            </div>
+
+            {/* OCR */}
+            <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-8 text-center shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-sky-500/10 text-sky-500">
+                <ScanText className="h-10 w-10" />
+              </div>
+              <Badge className="mb-3 bg-sky-500/10 text-sky-600 hover:bg-sky-500/20">OCR</Badge>
+              <h3 className="mb-3 text-xl font-bold text-foreground">Optical Character Recognition</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Automatically extract and digitize text from scanned IDs and
+                documents, reducing manual data entry and speeding up
+                verification processes.
+              </p>
+            </div>
+
+            {/* Voice Assistant */}
+            <div className="flex flex-col items-center rounded-2xl border border-border bg-card p-8 text-center shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500">
+                <Mic className="h-10 w-10" />
+              </div>
+              <Badge className="mb-3 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20">Voice</Badge>
+              <h3 className="mb-3 text-xl font-bold text-foreground">Voice-Powered Assistant</h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Speak naturally to navigate services, submit requests, or get
+                answers — making the portal accessible to all residents,
+                including those with limited digital literacy.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Portal Entry Section */}
       <section className="bg-muted/50 px-6 py-20">
         <div className="container m-auto">
@@ -165,10 +227,7 @@ export default function Home() {
                 Access barangay services, submit requests, view announcements,
                 and track your community.
               </p>
-              <Button size="lg" className="w-full cursor-pointer">
-                <User className="mr-2 h-5 w-5" />
-                Enter as Resident
-              </Button>
+              <ResidentAuthDialog triggerClassName="w-full cursor-pointer px-8" />
             </div>
 
             {/* Staff Card */}
@@ -183,10 +242,7 @@ export default function Home() {
                 Manage barangay operations, process document requests, monitor
                 tanod dispatches, and more.
               </p>
-              <Button size="lg" className="w-full cursor-pointer">
-                <UserCog className="mr-2 h-5 w-5" />
-                Enter as Staff
-              </Button>
+              <StaffAuthDialog triggerClassName="w-full cursor-pointer px-8" />
             </div>
           </div>
         </div>

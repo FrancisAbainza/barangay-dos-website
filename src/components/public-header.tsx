@@ -33,8 +33,8 @@ export default function PublicHeader() {
           <Image
             src={barangayLogoUrl ?? "/no-image.jpg"}
             alt={`${barangayName} logo`}
-            width={50}
-            height={50}
+            width={75}
+            height={75}
           />
           <div>
             <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">

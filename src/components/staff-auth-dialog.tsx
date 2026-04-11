@@ -16,7 +16,7 @@ import {
 } from "./ui/dialog";
 import { UserCog } from "lucide-react";
 
-export default function StaffAuthDialog() {
+export default function StaffAuthDialog({ triggerClassName }: { triggerClassName?: string }) {
   const [open, setOpen] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
   const { loginStaff } = useAuth();
@@ -31,7 +31,7 @@ export default function StaffAuthDialog() {
         <Button
           size="lg"
           variant="outline"
-          className="w-full cursor-pointer border-white/40 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white sm:w-auto px-8"
+          className={triggerClassName ?? "w-full cursor-pointer border-white/40 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:text-white sm:w-auto px-8"}
         >
           <UserCog />
           I am a Staff
