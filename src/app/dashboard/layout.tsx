@@ -2,9 +2,9 @@ import DashboardHeader from "@/components/dashboard-header";
 import DashboardSidebar from "@/components/dashboard-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
-export default function ProfileLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider defaultOpen className="h-svh overflow-hidden">
       <DashboardSidebar />
       <SidebarInset className="flex flex-1 flex-col overflow-y-auto">
         <DashboardHeader />

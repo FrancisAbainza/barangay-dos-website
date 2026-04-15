@@ -38,34 +38,34 @@ import {
 import Image from "next/image";
 
 const residentMenuItems = [
-  { title: "Home", href: "/resident", icon: Home },
-  { title: "News", href: "/resident/news", icon: Megaphone },
-  { title: "Document Request", href: "/resident/document-request", icon: FileText },
-  { title: "Scholarships", href: "/resident/scholarships", icon: GraduationCap },
-  { title: "Complaint", href: "/resident/complaint", icon: MessageSquareWarning },
-  { title: "Transparency", href: "/resident/transparency", icon: Eye },
-  { title: "Tanod Tracking", href: "/resident/tanod-tracking", icon: Navigation },
-  { title: "Surveillance (Tentative)", href: "/resident/surveillance", icon: Camera },
-  { title: "About Us", href: "/resident/about-us", icon: Info },
+  { title: "Home", href: "/dashboard", icon: Home },
+  { title: "News", href: "/dashboard/news", icon: Megaphone },
+  { title: "Document Request", href: "/dashboard/document-request", icon: FileText },
+  { title: "Scholarships", href: "/dashboard/scholarships", icon: GraduationCap },
+  { title: "Complaint", href: "/dashboard/complaint", icon: MessageSquareWarning },
+  { title: "Transparency", href: "/dashboard/transparency", icon: Eye },
+  { title: "Tanod Tracking", href: "/dashboard/tanod-tracking", icon: Navigation },
+  { title: "Surveillance (Tentative)", href: "/dashboard/surveillance", icon: Camera },
+  { title: "About Us", href: "/dashboard/about-us", icon: Info },
 ];
 
 const adminMenuItems = [
-  { title: "Home", href: "/staff", icon: Home },
-  { title: "News", href: "/staff/news", icon: Megaphone },
-  { title: "Document Request", href: "/staff/document-request", icon: FileText },
-  { title: "Scholarships", href: "/staff/scholarships", icon: GraduationCap },
-  { title: "Complaint", href: "/staff/complaint", icon: MessageSquareWarning },
-  { title: "Transparency", href: "/staff/transparency", icon: Eye },
-  { title: "Tanod Tracking", href: "/staff/tanod-tracking", icon: Navigation },
-  { title: "Surveillance (Tentative)", href: "/staff/surveillance", icon: Camera },
-  { title: "About Us", href: "/staff/about-us", icon: Info },
-  { title: "User Management", href: "/staff/user-management", icon: Users },
+  { title: "Home", href: "/dashboard", icon: Home },
+  { title: "News", href: "/dashboard/news", icon: Megaphone },
+  { title: "Document Request", href: "/dashboard/document-request", icon: FileText },
+  { title: "Scholarships", href: "/dashboard/scholarships", icon: GraduationCap },
+  { title: "Complaint", href: "/dashboard/complaint", icon: MessageSquareWarning },
+  { title: "Transparency", href: "/dashboard/transparency", icon: Eye },
+  { title: "Tanod Tracking", href: "/dashboard/tanod-tracking", icon: Navigation },
+  { title: "Surveillance (Tentative)", href: "/dashboard/surveillance", icon: Camera },
+  { title: "About Us", href: "/dashboard/about-us", icon: Info },
+  { title: "User Management", href: "/dashboard/user-management", icon: Users },
 ];
 
 const tanodMenuItems = [
-  { title: "Home", href: "/staff", icon: Home },
-  { title: "Tanod Tracking", href: "/staff/tanod-tracking", icon: Navigation },
-  { title: "Surveillance (Tentative)", href: "/staff/surveillance", icon: Camera },
+  { title: "Home", href: "/dashboard", icon: Home },
+  { title: "Tanod Tracking", href: "/dashboard/tanod-tracking", icon: Navigation },
+  { title: "Surveillance (Tentative)", href: "/dashboard/surveillance", icon: Camera },
 ]
 
 export default function DashboardSidebar() {
@@ -178,7 +178,7 @@ export default function DashboardSidebar() {
                   asChild
                   className="w-full justify-start gap-2"
                 >
-                  <Link href="/profile">
+                  <Link href={`/dashboard/profile/${user?.uid}`}>
                     <User className="h-4 w-4" />
                     <span>Profile</span>
                   </Link>

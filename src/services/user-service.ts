@@ -47,7 +47,7 @@ export async function createStaff(fullName: string, email: string, password: str
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   });
-  revalidatePath('/staff/user-management');
+  revalidatePath('/dashboard/user-management');
 }
 
 export async function getUserById(userId: string): Promise<UserProfile | null> {
@@ -75,7 +75,7 @@ export async function banResident(userId: string): Promise<void> {
     }),
     adminAuth.updateUser(userId, { disabled: true }),
   ]);
-  revalidatePath('/staff/user-management');
+  revalidatePath('/dashboard/user-management');
 }
 
 export async function unbanResident(userId: string): Promise<void> {
@@ -86,7 +86,7 @@ export async function unbanResident(userId: string): Promise<void> {
     }),
     adminAuth.updateUser(userId, { disabled: false }),
   ]);
-  revalidatePath('/staff/user-management');
+  revalidatePath('/dashboard/user-management');
 }
 
 export async function deleteResident(userId: string): Promise<void> {
@@ -94,7 +94,7 @@ export async function deleteResident(userId: string): Promise<void> {
     adminDb.collection(USERS_COLLECTION).doc(userId).delete(),
     adminAuth.deleteUser(userId),
   ]);
-  revalidatePath('/staff/user-management');
+  revalidatePath('/dashboard/user-management');
 }
 
 export async function deleteUserAccount(userId: string): Promise<void> {
@@ -113,7 +113,7 @@ export async function updateUserProfile(
     profilePicture: data.profilePicture ?? FieldValue.delete(),
     updatedAt: FieldValue.serverTimestamp(),
   });
-  revalidatePath('/profile');
+  revalidatePath(`/dashboard/profile/${userId}`);
 }
 
 export async function deleteStaff(userId: string): Promise<void> {
@@ -121,7 +121,7 @@ export async function deleteStaff(userId: string): Promise<void> {
     adminDb.collection(USERS_COLLECTION).doc(userId).delete(),
     adminAuth.deleteUser(userId),
   ]);
-  revalidatePath('/staff/user-management');
+  revalidatePath('/dashboard/user-management');
 }
 
 export async function toggleSavedPostForUser(
