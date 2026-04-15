@@ -148,7 +148,6 @@ export default function Home() {
       <section className="px-6 py-20">
         <div className="container m-auto">
           <div className="mb-12 text-center">
-            <Badge className="mb-4">Innovation</Badge>
             <h2 className="mb-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Powered by Emerging Technologies
             </h2>
@@ -180,7 +179,7 @@ export default function Home() {
               <Badge className="mb-3 bg-sky-500/10 text-sky-600 hover:bg-sky-500/20">OCR</Badge>
               <h3 className="mb-3 text-xl font-bold text-foreground">Optical Character Recognition</h3>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Automatically extract and digitize text from scanned IDs and
+                Automatically extract and digitize text from scanned
                 documents, reducing manual data entry and speeding up
                 verification processes.
               </p>

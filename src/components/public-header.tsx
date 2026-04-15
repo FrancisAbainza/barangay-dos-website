@@ -31,7 +31,7 @@ export default function PublicHeader() {
       <div className="container flex h-full m-auto items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src={barangayLogoUrl ?? "/no-image.jpg"}
+            src={barangayLogoUrl ?? "/logo.png"}
             alt={`${barangayName} logo`}
             width={75}
             height={75}
