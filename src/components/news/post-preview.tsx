@@ -4,9 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { NewsPost, CATEGORY_CONFIG } from "@/schemas/news-schema";
+import { NewsPost, CATEGORY_CONFIG } from "@/types/news";
 import { formatDate, getInitials } from "@/lib/utils";
-import { useNews } from "@/contexts/news-context";
+import { useNewsAuthors } from "@/hooks/use-news-queries";
 
 export function PostPreview({
   post,
@@ -15,7 +15,7 @@ export function PostPreview({
   post: NewsPost;
   onClick?: () => void;
 }) {
-  const { authors } = useNews();
+  const authors = useNewsAuthors();
   const author = authors[post.authorId];
   const authorName = author?.fullName ?? "Unknown";
 

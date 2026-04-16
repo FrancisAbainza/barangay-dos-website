@@ -29,8 +29,8 @@ export default function DeleteAccountButton() {
     setIsPending(true);
     try {
       // Delete profile picture from storage if one exists
-      if (userProfile.profilePicture && userProfile.profilePicture.length > 0) {
-        await deleteImagesByPath(userProfile.profilePicture);
+      if (userProfile.profilePicture) {
+        await deleteImagesByPath([userProfile.profilePicture]);
       }
 
       // Delete Firestore document and Firebase Auth user

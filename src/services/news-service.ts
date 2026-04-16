@@ -2,9 +2,8 @@
 
 import { adminDb } from "@/lib/firebase/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import type { NewsFormValues, NewsPost, Comment, Reply, Category } from "@/schemas/news-schema";
-import type { MediaItem } from "@/components/media-uploader";
-import type { AttachmentItem } from "@/components/attachment-picker";
+import type { NewsFormValues } from "@/schemas/news-schema";
+import type { NewsPost, Comment, Reply, Category, MediaItem, AttachmentItem } from "@/types";
 
 const NEWS_COLLECTION = "news";
 const USERS_COLLECTION = "users";
@@ -13,11 +12,11 @@ const PAGE_SIZE = 5;
 // ─── Helpers ──────────────────────────────────────────────────
 
 function toMediaItem(m: Record<string, unknown>): MediaItem {
-  return { uri: m.uri as string, path: m.path as string | undefined, type: m.type as "image" | "video" };
+  return { uri: m.uri as string, path: m.path as string, type: m.type as "image" | "video" };
 }
 
 function toAttachmentItem(a: Record<string, unknown>): AttachmentItem {
-  return { uri: a.uri as string, path: a.path as string | undefined, name: a.name as string, size: a.size as string | undefined };
+  return { uri: a.uri as string, path: a.path as string, name: a.name as string, size: a.size as string };
 }
 
 function toReply(r: Record<string, unknown>): Reply {

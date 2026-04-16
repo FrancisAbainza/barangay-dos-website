@@ -33,7 +33,7 @@ export default function EditProfileDialog() {
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
       fullName: userProfile?.fullName ?? "",
-      profilePicture: userProfile?.profilePicture ?? [],
+      profilePicture: userProfile?.profilePicture ? [userProfile.profilePicture] : [],
     },
   });
 
@@ -41,7 +41,7 @@ export default function EditProfileDialog() {
     if (open) {
       reset({
         fullName: userProfile?.fullName ?? "",
-        profilePicture: userProfile?.profilePicture ?? [],
+        profilePicture: userProfile?.profilePicture ? [userProfile.profilePicture] : [],
       });
     }
   }, [open, userProfile, reset]);
@@ -53,22 +53,18 @@ export default function EditProfileDialog() {
       const { fullName, profilePicture = [] } = data;
 
       // Upload the selected picture to Firebase Storage.
-      // - If the item already has a `path`, it's an existing upload and is returned as-is.
-      // - If the item's `uri` is a File, it gets uploaded and a download URL + path are returned.
-      // - If profilePicture is empty (user cleared it), this resolves to an empty array.
       const uploadedPictures = await uploadMultiplePostImages(profilePicture, `profiles/${user.uid}`);
 
       // Persist the updated profile fields to Firestore.
-      // uploadedPictures[0] is undefined when no picture was selected, which
-      // causes updateUserProfile to remove the profilePicture field via FieldValue.delete().
       await updateUserProfile(user.uid, { fullName, profilePicture: uploadedPictures[0] });
 
-      // Find pictures that existed before but are no longer in the uploaded set
-      // (i.e. the user removed them), then delete them from Firebase Storage.
-      const picturesToDelete = (userProfile.profilePicture ?? []).filter(
-        (existing) => !uploadedPictures.some((uploaded) => uploaded.path === existing.path)
-      );
-      await deleteImagesByPath(picturesToDelete);
+      // Delete the old picture from Firebase Storage if the user replaced or removed it.
+      const pictureToDelete =
+        userProfile.profilePicture &&
+        !uploadedPictures.some((u) => u.path === userProfile.profilePicture!.path)
+          ? [userProfile.profilePicture]
+          : [];
+      await deleteImagesByPath(pictureToDelete);
 
       // Re-fetch the user profile so the UI reflects the saved changes immediately.
       await refreshUserProfile();

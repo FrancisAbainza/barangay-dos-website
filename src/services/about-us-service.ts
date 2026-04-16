@@ -2,8 +2,7 @@
 
 import { adminDb } from "@/lib/firebase/server";
 import { FieldValue } from "firebase-admin/firestore";
-import type { ImageItem } from "@/components/multi-image-uploader";
-import type { OfficialType } from "@/schemas/about-us-schema";
+import type { ImageItem, BarangayProfile, Official, OfficialType } from "@/types/about-us";
 
 const SETTINGS_COLLECTION = "settings";
 const BARANGAY_PROFILE_DOC = "barangay-profile";
@@ -12,21 +11,6 @@ const OFFICIALS_COLLECTIONS: Record<OfficialType, string> = {
   barangay: "barangay-officials",
   sk: "sk-officials",
 };
-
-export interface BarangayProfile {
-  name: string;
-  address: string;
-  tagline: string;
-  barangayLogo?: ImageItem;
-  skLogo?: ImageItem;
-}
-
-export interface Official {
-  id: string;
-  fullName: string;
-  role: string;
-  picture?: ImageItem;
-}
 
 export async function getBarangayProfile(): Promise<BarangayProfile | null> {
   const docRef = adminDb
@@ -40,11 +24,11 @@ export async function getBarangayProfile(): Promise<BarangayProfile | null> {
   const data = doc.data()!;
 
   return {
-    name: data.name ?? "",
-    address: data.address ?? "",
-    tagline: data.tagline ?? "",
-    barangayLogo: data.barangayLogo ?? undefined,
-    skLogo: data.skLogo ?? undefined,
+    name: data.name,
+    address: data.address,
+    tagline: data.tagline,
+    barangayLogo: data.barangayLogo,
+    skLogo: data.skLogo,
   };
 }
 

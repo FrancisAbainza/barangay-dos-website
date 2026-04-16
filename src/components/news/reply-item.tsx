@@ -2,9 +2,9 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Reply } from "@/schemas/news-schema";
+import { Reply } from "@/types";
 import { useAuth } from "@/contexts/auth-context";
-import { useNews } from "@/contexts/news-context";
+import { useNewsAuthors, useDeleteReply } from "@/hooks/use-news-queries";
 import { formatDate, getInitials } from "@/lib/utils";
 
 export function ReplyItem({
@@ -16,7 +16,8 @@ export function ReplyItem({
   postId: string;
   commentId: string;
 }) {
-  const { authors, deleteReply } = useNews();
+  const authors = useNewsAuthors();
+  const deleteReply = useDeleteReply();
   const { userProfile } = useAuth();
   const author = authors[reply.authorId];
   const authorName = author?.fullName ?? reply.authorId;
@@ -52,7 +53,7 @@ export function ReplyItem({
           {canDelete && (
             <button
               className="text-xs font-semibold text-destructive hover:underline"
-              onClick={() => deleteReply(postId, commentId, reply.id)}
+              onClick={() => deleteReply.mutate({ postId, commentId, replyId: reply.id })}
             >
               Delete
             </button>

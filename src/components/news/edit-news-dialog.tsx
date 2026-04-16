@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import NewsForm from "@/components/news/news-form";
-import { NewsFormValues, NewsPost } from "@/schemas/news-schema";
-import { useNews } from "@/contexts/news-context";
+import { NewsFormValues } from "@/schemas/news-schema";
+import { NewsPost } from "@/types";
+import { useUpdatePost } from "@/hooks/use-news-queries";
 import { updateNewsPost } from "@/services/news-service";
 import { uploadMultipleMedia, uploadMultipleAttachments } from "@/services/storage-service";
 
@@ -24,7 +25,7 @@ export function EditNewsDialog({
   onOpenChange,
   post,
 }: EditNewsDialogProps) {
-  const { updatePost } = useNews();
+  const updatePost = useUpdatePost();
 
   const defaultValues: NewsFormValues = {
     title: post.title,
@@ -66,7 +67,7 @@ export function EditNewsDialog({
         attachments,
       });
 
-      updatePost(updated);
+      updatePost.mutate(updated);
       toast.success("Post updated successfully.");
       onOpenChange(false);
     } catch (error) {

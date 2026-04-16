@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { useNews } from "@/contexts/news-context";
+import {
+  useNewsAuthors,
+  useSavedPostIds,
+  useToggleSavedPost,
+  useApplyReaction,
+  useDeletePost,
+} from "@/hooks/use-news-queries";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +34,8 @@ import {
   BookmarkCheck,
 } from "lucide-react";
 import { cn, formatDate, getInitials } from "@/lib/utils";
-import { NewsPost, CATEGORY_CONFIG } from "@/schemas/news-schema";
+import { NewsPost } from "@/types";
+import { CATEGORY_CONFIG } from "@/types/news";
 import { MediaGallery } from "./image-gallery";
 import { EditNewsDialog } from "./edit-news-dialog";
 
@@ -44,7 +51,11 @@ export function PostBody({
   onCommentClick,
 }: PostBodyProps) {
   const { userProfile } = useAuth();
-  const { authors, savedPostIds, toggleSavedPost, applyReaction, removePost } = useNews();
+  const authors = useNewsAuthors();
+  const savedPostIds = useSavedPostIds();
+  const toggleSavedPost = useToggleSavedPost();
+  const applyReaction = useApplyReaction();
+  const deletePost = useDeletePost();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const author = authors[post.authorId];
@@ -119,7 +130,7 @@ export function PostBody({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => toggleSavedPost(post.id)}>
+                  <DropdownMenuItem onClick={() => toggleSavedPost.mutate({ postId: post.id, save: !isSaved })}>
                     {isSaved ? (
                       <><BookmarkCheck className="size-4" />Unsave post</>
                     ) : (
@@ -135,7 +146,7 @@ export function PostBody({
                   {canManage && (
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
-                      onClick={() => removePost(post.id)}
+                      onClick={() => deletePost.mutate(post.id)}
                     >
                       <Trash2 className="size-4" />
                       Delete
@@ -233,7 +244,7 @@ export function PostBody({
             "gap-1.5 text-muted-foreground font-normal",
             activeReaction === "like" && "text-primary font-semibold hover:text-primary"
           )}
-          onClick={() => applyReaction(post.id, "like")}
+          onClick={() => applyReaction.mutate({ postId: post.id, type: "like" })}
         >
           <ThumbsUp className="size-4" />
           <span className="hidden sm:inline">Like</span>
@@ -245,7 +256,7 @@ export function PostBody({
             "gap-1.5 text-muted-foreground font-normal",
             activeReaction === "dislike" && "text-destructive font-semibold hover:text-destructive"
           )}
-          onClick={() => applyReaction(post.id, "dislike")}
+          onClick={() => applyReaction.mutate({ postId: post.id, type: "dislike" })}
         >
           <ThumbsDown className="size-4" />
           <span className="hidden sm:inline">Dislike</span>

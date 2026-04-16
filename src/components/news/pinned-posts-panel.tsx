@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Pin } from "lucide-react";
-import { useNews } from "@/contexts/news-context";
+import { usePinnedPosts } from "@/hooks/use-news-queries";
 import { PostPreview } from "./post-preview";
 import { PostDetailDialog } from "./post-detail-dialog";
 
 export function PinnedPostsPanel() {
-  const { pinnedPosts } = useNews();
+  const { data: pinnedPosts = [] } = usePinnedPosts();
   const [expanded, setExpanded] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 

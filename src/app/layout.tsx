@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import AuthProvider from "@/contexts/auth-context";
-import BarangayProfileProvider from "@/contexts/barangay-profile-context";
+import QueryProvider from "@/lib/query-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
@@ -20,10 +20,10 @@ export default function RootLayout({
         className={`antialiased`}
       >
         <AuthProvider>
-          <BarangayProfileProvider>
+          <QueryProvider>
             {children}
             <Toaster />
-          </BarangayProfileProvider>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

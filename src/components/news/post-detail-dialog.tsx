@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
 import { X } from "lucide-react";
-import { NewsPost } from "@/schemas/news-schema";
-import { useNews } from "@/contexts/news-context";
+import { NewsPost } from "@/types";
+import { useNewsAuthors } from "@/hooks/use-news-queries";
 import { PostBody } from "./post-body";
 import { PostComments } from "./post-comments";
 
@@ -17,7 +17,7 @@ export function PostDetailDialog({
   open: boolean;
   onClose: () => void;
 }) {
-  const { authors } = useNews();
+  const authors = useNewsAuthors();
   const authorName = authors[post.authorId]?.fullName ?? "Author";
 
   return (

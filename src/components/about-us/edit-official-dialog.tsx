@@ -27,15 +27,16 @@ import { Input } from "@/components/ui/input";
 import MultiImageUploader from "@/components/multi-image-uploader";
 import {
   officialSchema,
-  OfficialFormValues,
+  type OfficialFormValues,
+} from "@/schemas/about-us-schema";
+import {
   BARANGAY_ROLES,
   SK_ROLES,
   type OfficialType,
-} from "@/schemas/about-us-schema";
+} from "@/types/about-us";
 import type { ImageItem } from "@/components/multi-image-uploader";
 import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
-import { updateOfficial } from "@/services/about-us-service";
-import { useAboutUs } from "@/contexts/about-us-context";
+import { useUpdateOfficial } from "@/hooks/use-officials-queries";
 
 interface EditOfficialDialogProps {
   id: string;
@@ -56,7 +57,7 @@ export default function EditOfficialDialog({
 }: EditOfficialDialogProps) {
   const roles = type === "barangay" ? BARANGAY_ROLES : SK_ROLES;
   const [open, setOpen] = useState(false);
-  const { updateOfficial: updateOfficialInState } = useAboutUs();
+  const updateOfficialMutation = useUpdateOfficial();
 
   const {
     register,
@@ -96,13 +97,10 @@ export default function EditOfficialDialog({
         `officials/${type}`,
       );
 
-      // Persist the updated fields to Firestore.
-      // uploadedPictures[0] is undefined when no picture was selected, which
-      // causes updateOfficial to remove the picture field via FieldValue.delete().
-      await updateOfficial(type, id, {
-        fullName,
-        role,
-        picture: uploadedPictures[0],
+      updateOfficialMutation.mutate({
+        type,
+        id,
+        data: { fullName, role, picture: uploadedPictures[0] },
       });
 
       // Delete the old picture from Firebase Storage if the user replaced or removed it.
@@ -111,14 +109,6 @@ export default function EditOfficialDialog({
           !uploadedPictures.some((u) => u.path === existing.path),
       );
       await deleteImagesByPath(picturesToDelete);
-
-      // Optimistically update the official in local state so the UI reflects
-      // the change immediately without refetching from the database.
-      updateOfficialInState(type, id, {
-        fullName,
-        role,
-        picture: uploadedPictures[0],
-      });
       toast.success("Official updated successfully!");
       setOpen(false);
     } catch (error) {

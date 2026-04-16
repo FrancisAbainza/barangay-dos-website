@@ -1,33 +1,72 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Megaphone, AlertTriangle, CalendarDays } from "lucide-react";
-import { NewsProvider, useNews } from "@/contexts/news-context";
 import { useAuth } from "@/contexts/auth-context";
-import { useBarangayProfile } from "@/contexts/barangay-profile-context";
+import { useBarangayProfile } from "@/hooks/use-barangay-profile-query";
+import {
+  useNewsFeed,
+  useCategoryFeed,
+  usePinnedPosts,
+  useSavedPosts,
+  useEnsureAuthors,
+} from "@/hooks/use-news-queries";
 import { PostFeed } from "@/components/news/post-feed";
 import { PinnedPostsPanel } from "@/components/news/pinned-posts-panel";
 import { SavedPostsPanel } from "@/components/news/saved-posts-panel";
 import { CreateNewsDialog } from "@/components/news/create-news-dialog";
 
 export function NewsPageDashboard() {
-  return (
-    <NewsProvider>
-      <NewsPageContent />
-    </NewsProvider>
-  );
+  return <NewsPageContent />;
 }
 
 function NewsPageContent() {
-  const { posts, hasMore, loadMore, isLoadingMore, categoryFeeds, loadMoreCategory } = useNews();
+  const feedQuery = useNewsFeed();
+  const announcementFeed = useCategoryFeed("Announcement");
+  const eventFeed = useCategoryFeed("Event");
+  const emergencyFeed = useCategoryFeed("Emergency");
+  const pinnedQuery = usePinnedPosts();
+  const savedQuery = useSavedPosts();
+
   const { barangayName } = useBarangayProfile();
   const { userProfile } = useAuth();
   const isAuthenticated = !!userProfile;
 
-  const loadMoreAnnouncements = useCallback(() => loadMoreCategory("Announcement"), [loadMoreCategory]);
-  const loadMoreEvents = useCallback(() => loadMoreCategory("Event"), [loadMoreCategory]);
-  const loadMoreEmergencies = useCallback(() => loadMoreCategory("Emergency"), [loadMoreCategory]);
+  const posts = useMemo(
+    () => feedQuery.data?.pages.flatMap((p) => p.posts) ?? [],
+    [feedQuery.data],
+  );
+  const announcementPosts = useMemo(
+    () => announcementFeed.data?.pages.flatMap((p) => p.posts) ?? [],
+    [announcementFeed.data],
+  );
+  const eventPosts = useMemo(
+    () => eventFeed.data?.pages.flatMap((p) => p.posts) ?? [],
+    [eventFeed.data],
+  );
+  const emergencyPosts = useMemo(
+    () => emergencyFeed.data?.pages.flatMap((p) => p.posts) ?? [],
+    [emergencyFeed.data],
+  );
+
+  // Ensure authors are fetched for all loaded posts
+  const allPosts = useMemo(
+    () => [
+      ...posts,
+      ...announcementPosts,
+      ...eventPosts,
+      ...emergencyPosts,
+      ...(pinnedQuery.data ?? []),
+      ...(savedQuery.data ?? []),
+    ],
+    [posts, announcementPosts, eventPosts, emergencyPosts, pinnedQuery.data, savedQuery.data],
+  );
+  useEnsureAuthors(allPosts);
+
+  const loadMoreAnnouncements = useCallback(() => announcementFeed.fetchNextPage(), [announcementFeed]);
+  const loadMoreEvents = useCallback(() => eventFeed.fetchNextPage(), [eventFeed]);
+  const loadMoreEmergencies = useCallback(() => emergencyFeed.fetchNextPage(), [emergencyFeed]);
 
   return (
     <div className="container space-y-6 m-auto">
@@ -84,35 +123,35 @@ function NewsPageContent() {
             <TabsContent value="all" className="mt-5">
               <PostFeed
                 posts={posts}
-                hasMore={hasMore}
-                loadMore={loadMore}
-                isLoadingMore={isLoadingMore}
+                hasMore={feedQuery.hasNextPage}
+                loadMore={() => feedQuery.fetchNextPage()}
+                isLoadingMore={feedQuery.isFetchingNextPage}
               />
             </TabsContent>
 
             <TabsContent value="announcement" className="mt-5">
               <PostFeed
-                posts={categoryFeeds["Announcement"].posts}
-                hasMore={categoryFeeds["Announcement"].hasMore}
-                isLoadingMore={categoryFeeds["Announcement"].isLoadingMore}
+                posts={announcementPosts}
+                hasMore={announcementFeed.hasNextPage}
+                isLoadingMore={announcementFeed.isFetchingNextPage}
                 loadMore={loadMoreAnnouncements}
               />
             </TabsContent>
 
             <TabsContent value="event" className="mt-5">
               <PostFeed
-                posts={categoryFeeds["Event"].posts}
-                hasMore={categoryFeeds["Event"].hasMore}
-                isLoadingMore={categoryFeeds["Event"].isLoadingMore}
+                posts={eventPosts}
+                hasMore={eventFeed.hasNextPage}
+                isLoadingMore={eventFeed.isFetchingNextPage}
                 loadMore={loadMoreEvents}
               />
             </TabsContent>
 
             <TabsContent value="emergency" className="mt-5">
               <PostFeed
-                posts={categoryFeeds["Emergency"].posts}
-                hasMore={categoryFeeds["Emergency"].hasMore}
-                isLoadingMore={categoryFeeds["Emergency"].isLoadingMore}
+                posts={emergencyPosts}
+                hasMore={emergencyFeed.hasNextPage}
+                isLoadingMore={emergencyFeed.isFetchingNextPage}
                 loadMore={loadMoreEmergencies}
               />
             </TabsContent>

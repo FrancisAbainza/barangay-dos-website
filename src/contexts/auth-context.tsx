@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
 import { loginAction, logoutAction, checkIsAdminAction } from "@/actions/auth";
 import { createResident, getUserById } from "@/services/user-service";
-import { UserProfile } from "@/schemas/profile-schema";
+import { UserProfile } from "@/types";
 
 interface AuthContextType {
   user: User | null;

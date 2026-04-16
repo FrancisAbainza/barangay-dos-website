@@ -4,9 +4,8 @@ import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { OfficialType } from "@/schemas/about-us-schema";
-import { deleteOfficial } from "@/services/about-us-service";
-import { useAboutUs } from "@/contexts/about-us-context";
+import type { OfficialType } from "@/types/about-us";
+import { useDeleteOfficial } from "@/hooks/use-officials-queries";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,17 +31,12 @@ export default function DeleteOfficialDialog({
 }: DeleteOfficialDialogProps) {
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const { removeOfficial } = useAboutUs();
+  const deleteOfficialMutation = useDeleteOfficial();
 
   const handleDelete = async () => {
     setIsPending(true);
     try {
-      // Delete the official document from the correct Firestore collection.
-      await deleteOfficial(type, id);
-
-      // Optimistically remove the official from local state so the UI updates
-      // immediately without refetching from the database.
-      removeOfficial(type, id);
+      await deleteOfficialMutation.mutateAsync({ type, id });
       toast.success(`${officialName} removed successfully!`);
       setOpen(false);
     } catch (error) {

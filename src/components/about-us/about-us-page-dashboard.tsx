@@ -10,15 +10,14 @@ import EditHeaderDialog from "@/components/about-us/edit-header-dialog";
 import AddOfficialDialog from "@/components/about-us/add-official-dialog";
 import EditOfficialDialog from "@/components/about-us/edit-official-dialog";
 import DeleteOfficialDialog from "@/components/about-us/delete-official-dialog";
-import { type Official } from "@/services/about-us-service";
 import {
+  type Official,
   type OfficialType,
   BARANGAY_SINGLETON_ROLES,
   SK_SINGLETON_ROLES,
-} from "@/schemas/about-us-schema";
-import { useBarangayProfile } from "@/contexts/barangay-profile-context";
-import { useAboutUs } from "@/contexts/about-us-context";
-import { AboutUsProvider } from "@/contexts/about-us-context";
+} from "@/types/about-us";
+import { useBarangayProfile } from "@/hooks/use-barangay-profile-query";
+import { useOfficials } from "@/hooks/use-officials-queries";
 import { useAuth } from "@/contexts/auth-context";
 import { getInitials } from "@/lib/utils";
 
@@ -121,11 +120,7 @@ function OfficialsSection({
                 )}
                 <Avatar className="size-16">
                   <AvatarImage
-                    src={
-                      typeof chief.picture?.uri === "string"
-                        ? chief.picture.uri
-                        : undefined
-                    }
+                    src={chief.picture?.uri}
                   />
                   <AvatarFallback className="bg-primary text-primary-foreground text-lg font-bold">
                     {getInitials(chief.fullName)}
@@ -148,11 +143,7 @@ function OfficialsSection({
                   >
                     <Avatar className="size-10 shrink-0">
                       <AvatarImage
-                        src={
-                          typeof official.picture?.uri === "string"
-                            ? official.picture.uri
-                            : undefined
-                        }
+                        src={official.picture?.uri}
                       />
                       <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
                         {getInitials(official.fullName)}
@@ -197,17 +188,14 @@ function OfficialsSection({
 }
 
 export default function AboutUsPageDashboard() {
-  return (
-    <AboutUsProvider>
-      <AboutUsPageContent />
-    </AboutUsProvider>
-  );
+  return <AboutUsPageContent />;
 }
 
 function AboutUsPageContent() {
   const { profile, barangayName, barangayLogoUrl, skLogoUrl } =
     useBarangayProfile();
-  const { barangayOfficials, skOfficials } = useAboutUs();
+  const { data: barangayOfficials = [] } = useOfficials("barangay");
+  const { data: skOfficials = [] } = useOfficials("sk");
   const { userProfile } = useAuth();
   const isAuthenticated =
     userProfile?.role === "Admin" || userProfile?.role === "Super Admin";

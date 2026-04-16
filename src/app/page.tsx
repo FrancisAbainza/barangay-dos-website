@@ -20,7 +20,7 @@ import ResidentAuthDialog from "@/components/resident-auth-dialog";
 import StaffAuthDialog from "@/components/staff-auth-dialog";
 import PublicHeader from "@/components/public-header";
 import PublicFooter from "@/components/public-footer";
-import { useBarangayProfile } from "@/contexts/barangay-profile-context";
+import { useBarangayProfile } from "@/hooks/use-barangay-profile-query";
 
 const getFeatures = (name: string) => [
   {

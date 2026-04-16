@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { NewsPost } from "@/schemas/news-schema";
+import { NewsPost } from "@/types";
 import { PostBody } from "./post-body";
 import { PostDetailDialog } from "./post-detail-dialog";
 

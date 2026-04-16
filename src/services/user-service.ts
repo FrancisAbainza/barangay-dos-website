@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { adminAuth, adminDb } from "@/lib/firebase/server";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import type { ImageItem } from "@/components/multi-image-uploader";
-import { UserProfile } from "@/schemas/profile-schema";
+import type { ImageItem } from "@/types";
+import type { UserProfile } from "@/types";
 
 const USERS_COLLECTION = 'users';
 
@@ -17,7 +17,7 @@ function docToProfile(doc: FirebaseFirestore.DocumentSnapshot): UserProfile {
     role: data.role,
     banned: data.banned ?? false,
     savedPostIds: Array.isArray(data.savedPostIds) ? data.savedPostIds : [],
-    profilePicture: data.profilePicture ? [data.profilePicture] : [],
+    profilePicture: data.profilePicture ?? undefined,
     createdAt: (data.createdAt as Timestamp).toDate().toISOString(),
     updatedAt: (data.updatedAt as Timestamp).toDate().toISOString(),
   };

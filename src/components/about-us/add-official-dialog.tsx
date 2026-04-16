@@ -27,14 +27,15 @@ import { Input } from "@/components/ui/input";
 import MultiImageUploader from "@/components/multi-image-uploader";
 import {
   officialSchema,
-  OfficialFormValues,
+  type OfficialFormValues,
+} from "@/schemas/about-us-schema";
+import {
   BARANGAY_ROLES,
   SK_ROLES,
   type OfficialType,
-} from "@/schemas/about-us-schema";
+} from "@/types/about-us";
 import { uploadMultiplePostImages } from "@/services/storage-service";
-import { addOfficial } from "@/services/about-us-service";
-import { useAboutUs } from "@/contexts/about-us-context";
+import { useAddOfficial } from "@/hooks/use-officials-queries";
 
 interface AddOfficialDialogProps {
   title: string;
@@ -48,7 +49,7 @@ export default function AddOfficialDialog({
   takenRoles,
 }: AddOfficialDialogProps) {
   const [open, setOpen] = useState(false);
-  const { addOfficial: addOfficialToState } = useAboutUs();
+  const addOfficialMutation = useAddOfficial();
 
   const roles = type === "barangay" ? BARANGAY_ROLES : SK_ROLES;
 
@@ -81,21 +82,9 @@ export default function AddOfficialDialog({
         `officials/${type}`,
       );
 
-      // Persist the new official to Firestore under the correct collection.
-      // The server action returns the new document ID.
-      const docId = await addOfficial(type, {
-        fullName,
-        role,
-        picture: uploadedPictures[0],
-      });
-
-      // Optimistically add the official to local state so the UI updates
-      // immediately without refetching from the database.
-      addOfficialToState(type, {
-        id: docId,
-        fullName,
-        role,
-        picture: uploadedPictures[0],
+      addOfficialMutation.mutate({
+        type,
+        data: { fullName, role, picture: uploadedPictures[0] },
       });
       toast.success("Official added successfully!");
       setOpen(false);

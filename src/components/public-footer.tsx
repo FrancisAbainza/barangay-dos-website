@@ -1,6 +1,6 @@
 "use client";
 
-import { useBarangayProfile } from "@/contexts/barangay-profile-context";
+import { useBarangayProfile } from "@/hooks/use-barangay-profile-query";
 
 export default function PublicFooter() {
   const { barangayName } = useBarangayProfile();

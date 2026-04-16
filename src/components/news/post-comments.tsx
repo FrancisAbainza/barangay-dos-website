@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/auth-context";
-import { useNews } from "@/contexts/news-context";
+import { useAddComment } from "@/hooks/use-news-queries";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Send } from "lucide-react";
 import { getInitials } from "@/lib/utils";
-import { NewsPost } from "@/schemas/news-schema";
+import { NewsPost } from "@/types";
 import { CommentItem } from "./comment-item";
 
 interface PostCommentsProps {
@@ -18,13 +18,13 @@ interface PostCommentsProps {
 
 export function PostComments({ post }: PostCommentsProps) {
   const { userProfile } = useAuth();
-  const { addComment } = useNews();
+  const addComment = useAddComment();
   const currentUserName = userProfile?.fullName ?? "Guest User";
   const [newComment, setNewComment] = useState("");
 
   function handleAddComment() {
     if (!newComment.trim()) return;
-    addComment(post.id, newComment.trim());
+    addComment.mutate({ postId: post.id, content: newComment.trim() });
     setNewComment("");
   }
 

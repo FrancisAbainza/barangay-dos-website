@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, Send } from "lucide-react";
-import { Comment } from "@/schemas/news-schema";
+import { Comment } from "@/types";
 import { useAuth } from "@/contexts/auth-context";
-import { useNews } from "@/contexts/news-context";
+import { useNewsAuthors, useAddReply, useDeleteComment } from "@/hooks/use-news-queries";
 import { formatDate, getInitials } from "@/lib/utils";
 import { ReplyItem } from "./reply-item";
 
@@ -20,7 +20,9 @@ export function CommentItem({
   postId: string;
 }) {
   const { userProfile } = useAuth();
-  const { authors, addReply, deleteComment } = useNews();
+  const authors = useNewsAuthors();
+  const addReply = useAddReply();
+  const deleteComment = useDeleteComment();
   const currentUser = userProfile?.fullName ?? "Guest User";
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [showReplies, setShowReplies] = useState(true);
@@ -37,7 +39,7 @@ export function CommentItem({
 
   function handleSubmitReply() {
     if (!replyText.trim()) return;
-    addReply(postId, comment.id, replyText.trim());
+    addReply.mutate({ postId, commentId: comment.id, content: replyText.trim() });
     setReplyText("");
     setShowReplyForm(false);
   }
@@ -81,7 +83,7 @@ export function CommentItem({
             {canDelete && (
               <button
                 className="text-xs font-semibold text-destructive hover:underline"
-                onClick={() => deleteComment(postId, comment.id)}
+                onClick={() => deleteComment.mutate({ postId, commentId: comment.id })}
               >
                 Delete
               </button>

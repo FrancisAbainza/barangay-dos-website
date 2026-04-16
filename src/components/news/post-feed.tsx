@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Loader2, Megaphone } from "lucide-react";
-import { NewsPost } from "@/schemas/news-schema";
+import { NewsPost } from "@/types";
 import { PostCard } from "./post-card";
 
 interface PostFeedProps {

@@ -19,7 +19,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
-import { useBarangayProfile } from "@/contexts/barangay-profile-context";
+import { useBarangayProfile } from "@/hooks/use-barangay-profile-query";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -135,7 +135,7 @@ export default function DashboardSidebar() {
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <Avatar className="h-8 w-8 shrink-0">
-                    <AvatarImage src={userProfile?.profilePicture?.[0]?.uri as string | undefined} />
+                    <AvatarImage src={userProfile?.profilePicture?.uri} />
                     <AvatarFallback className="text-xs">
                       {userProfile?.fullName?.charAt(0).toUpperCase() ?? "U"}
                     </AvatarFallback>
@@ -157,7 +157,7 @@ export default function DashboardSidebar() {
             <PopoverContent side="top" align="start" className="w-64 p-0">
               <div className="flex items-center gap-3 p-4">
                 <Avatar className="h-10 w-10 shrink-0">
-                  <AvatarImage src={userProfile?.profilePicture?.[0]?.uri as string | undefined} />
+                  <AvatarImage src={userProfile?.profilePicture?.uri} />
                   <AvatarFallback>
                     {userProfile?.fullName?.charAt(0).toUpperCase() ?? "U"}
                   </AvatarFallback>

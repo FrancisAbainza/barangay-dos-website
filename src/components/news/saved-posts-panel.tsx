@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Bookmark, LogIn } from "lucide-react";
-import { useNews } from "@/contexts/news-context";
+import { useSavedPosts } from "@/hooks/use-news-queries";
 import { useAuth } from "@/contexts/auth-context";
 import { PostPreview } from "./post-preview";
 import { PostDetailDialog } from "./post-detail-dialog";
 
 export function SavedPostsPanel() {
-  const { savedPosts } = useNews();
+  const { data: savedPosts = [] } = useSavedPosts();
   const { userProfile } = useAuth();
   const [expanded, setExpanded] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);

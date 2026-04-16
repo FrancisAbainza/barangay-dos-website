@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useBarangayProfile } from "@/contexts/barangay-profile-context";
+import { useBarangayProfile } from "@/hooks/use-barangay-profile-query";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 

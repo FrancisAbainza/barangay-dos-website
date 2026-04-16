@@ -24,8 +24,7 @@ import {
   EditHeaderFormValues,
 } from "@/schemas/about-us-schema";
 import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
-import { updateBarangayHeader } from "@/services/about-us-service";
-import { useBarangayProfile } from "@/contexts/barangay-profile-context";
+import { useUpdateBarangayHeader } from "@/hooks/use-barangay-profile-query";
 
 interface EditHeaderDialogProps {
   defaultValues: EditHeaderFormValues;
@@ -35,7 +34,7 @@ export default function EditHeaderDialog({
   defaultValues,
 }: EditHeaderDialogProps) {
   const [open, setOpen] = useState(false);
-  const { updateProfile } = useBarangayProfile();
+  const updateHeaderMutation = useUpdateBarangayHeader();
 
   const {
     register,
@@ -67,11 +66,8 @@ export default function EditHeaderDialog({
         uploadMultiplePostImages(skLogo, "about-us/sk-logo"),
       ]);
 
-      // Persist the updated header fields to Firestore.
-      // uploadedBarangayLogo[0] / uploadedSkLogo[0] are undefined when the user
-      // cleared the logo, which causes updateBarangayHeader to remove the field
-      // via FieldValue.delete().
-      await updateBarangayHeader({
+      // Persist the updated header fields to Firestore and update the cache.
+      await updateHeaderMutation.mutateAsync({
         name,
         address,
         tagline,
@@ -91,15 +87,6 @@ export default function EditHeaderDialog({
       ];
       await deleteImagesByPath(logosToDelete);
 
-      // Optimistically update the cached profile so the UI reflects the change
-      // immediately without refetching from the database.
-      updateProfile({
-        name,
-        address,
-        tagline,
-        barangayLogo: uploadedBarangayLogo[0],
-        skLogo: uploadedSkLogo[0],
-      });
       toast.success("Header updated successfully!");
       setOpen(false);
     } catch (error) {

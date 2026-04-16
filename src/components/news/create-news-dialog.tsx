@@ -14,14 +14,14 @@ import { toast } from "sonner";
 import NewsForm from "@/components/news/news-form";
 import { NewsFormValues } from "@/schemas/news-schema";
 import { useAuth } from "@/contexts/auth-context";
-import { useNews } from "@/contexts/news-context";
+import { useCreatePost } from "@/hooks/use-news-queries";
 import { createNewsPost } from "@/services/news-service";
 import { uploadMultipleMedia, uploadMultipleAttachments } from "@/services/storage-service";
 
 export function CreateNewsDialog() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
-  const { addPost } = useNews();
+  const createPost = useCreatePost();
 
   async function handleSubmit(data: NewsFormValues) {
     if (!user) return;
@@ -46,7 +46,7 @@ export function CreateNewsDialog() {
         authorId: user.uid,
       });
 
-      addPost(post);
+      createPost.mutate(post);
       toast.success("Post published successfully.");
       setOpen(false);
     } catch (error) {

@@ -1,4 +1,4 @@
-import { UserProfile } from '@/schemas/profile-schema';
+import { UserProfile } from "@/types";
 
 export type ConfirmAction =
   | { type: 'ban'; user: UserProfile }

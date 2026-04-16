@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
-import { UserProfile } from '@/schemas/profile-schema';
+import { UserProfile } from "@/types";
 import { banResident, unbanResident, deleteResident, deleteStaff } from '@/services/user-service';
 import { ConfirmAction } from './types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

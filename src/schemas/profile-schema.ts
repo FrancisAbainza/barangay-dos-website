@@ -7,16 +7,3 @@ export const editProfileSchema = z.object({
 });
 
 export type EditProfileFormValues = z.infer<typeof editProfileSchema>;
-
-// UserProfile extends the editable form fields so adding a new field to the
-// schema automatically surfaces it here. profilePicture is optional for users
-// who have not set one yet.
-export interface UserProfile extends EditProfileFormValues  {
-  uid: string;
-  email: string | null;
-  role: string;
-  banned: boolean;
-  savedPostIds: string[];
-  createdAt: string;
-  updatedAt: string;
-};

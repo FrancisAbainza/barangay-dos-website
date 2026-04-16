@@ -1,16 +1,20 @@
 "use client";
 
 import { storage } from "@/lib/firebase/client";
-import type { ImageItem } from "@/components/multi-image-uploader";
-import type { MediaItem } from "@/components/media-uploader";
-import type { AttachmentItem } from "@/components/attachment-picker";
+import type { ImageItem as FormImageItem } from "@/components/multi-image-uploader";
+import type { MediaItem as FormMediaItem } from "@/components/media-uploader";
+import type { AttachmentItem as FormAttachmentItem } from "@/components/attachment-picker";
+import type { ImageItem, MediaItem, AttachmentItem } from "@/types";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
-export const uploadMultiplePostImages = async (images: ImageItem[], basePath: string) => {
-  const uploadPromises = images.map(async (image) => {
-    if (!!image?.path) {
-      // Image already uploaded
-      return image;
+export const uploadMultiplePostImages = async (
+  images: FormImageItem[],
+  basePath: string,
+): Promise<ImageItem[]> => {
+  const uploadPromises = images.map(async (image): Promise<ImageItem> => {
+    if (image.path) {
+      // Already uploaded — uri is a download URL string, path is a storage path.
+      return { uri: image.uri as string, path: image.path };
     }
 
     // 1. Create unique reference
@@ -20,24 +24,16 @@ export const uploadMultiplePostImages = async (images: ImageItem[], basePath: st
     // 2. Upload
     const snapshot = await uploadBytes(storageRef, image.uri as File);
 
-    // 5. Get URL
+    // 3. Get URL
     const url = await getDownloadURL(snapshot.ref);
 
-    return {
-      uri: url,
-      path,
-    };
+    return { uri: url, path };
   });
 
-  // Execute all uploads in parallel
-  const uploadedImages = await Promise.all(uploadPromises);
+  return Promise.all(uploadPromises);
+};
 
-  // Return uploaded images
-  return uploadedImages;
-}
-
-
-export const deleteImagesByPath = async (images: ImageItem[]) => {
+export const deleteImagesByPath = async (images: { path?: string }[]) => {
   const deletePromises = images.map((image) => {
     // Basic guard: if no path, return a resolved promise
     if (!image?.path) return Promise.resolve();
@@ -51,12 +47,19 @@ export const deleteImagesByPath = async (images: ImageItem[]) => {
 };
 
 export const uploadMultipleAttachments = async (
-  attachments: AttachmentItem[],
+  attachments: FormAttachmentItem[],
   basePath: string,
 ): Promise<AttachmentItem[]> => {
-  const uploadPromises = attachments.map(async (attachment) => {
+  const uploadPromises = attachments.map(async (attachment): Promise<AttachmentItem> => {
     // If the attachment already has a storage path, it was previously uploaded — skip re-upload.
-    if (attachment.path) return attachment;
+    if (attachment.path) {
+      return {
+        uri: attachment.uri as string,
+        path: attachment.path,
+        name: attachment.name,
+        size: attachment.size ?? "",
+      };
+    }
 
     // Generate a unique path under the given base using a timestamp + random suffix.
     const path = `${basePath}/${Date.now()}-${Math.random().toString(36).substring(7)}`;
@@ -72,19 +75,22 @@ export const uploadMultipleAttachments = async (
       uri: url,
       path,
       name: attachment.name,
-      size: attachment.size,
-    } satisfies AttachmentItem;
+      size: attachment.size ?? "",
+    };
   });
 
   return Promise.all(uploadPromises);
 };
 
 export const uploadMultipleMedia = async (
-  media: MediaItem[],
+  media: FormMediaItem[],
   basePath: string,
 ): Promise<MediaItem[]> => {
-  const uploadPromises = media.map(async (item) => {
-    if (item.path) return item; // already uploaded
+  const uploadPromises = media.map(async (item): Promise<MediaItem> => {
+    if (item.path) {
+      // Already uploaded.
+      return { uri: item.uri as string, path: item.path, type: item.type };
+    }
 
     const path = `${basePath}/${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const storageRef = ref(storage, path);
@@ -92,11 +98,7 @@ export const uploadMultipleMedia = async (
     const snapshot = await uploadBytes(storageRef, item.uri as File);
     const url = await getDownloadURL(snapshot.ref);
 
-    return {
-      uri: url,
-      path,
-      type: item.type,
-    } satisfies MediaItem;
+    return { uri: url, path, type: item.type };
   });
 
   return Promise.all(uploadPromises);
