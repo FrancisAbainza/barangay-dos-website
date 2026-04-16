@@ -4,8 +4,9 @@ import { useState } from "react";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import type { OfficialType } from "@/types/about-us";
+import type { Official, OfficialType } from "@/types/about-us";
 import { useDeleteOfficial } from "@/hooks/use-officials-queries";
+import { deleteSingleImage } from "@/services/storage-service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,15 +20,13 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface DeleteOfficialDialogProps {
-  id: string;
+  official: Official;
   type: OfficialType;
-  officialName: string;
 }
 
 export default function DeleteOfficialDialog({
-  id,
+  official,
   type,
-  officialName,
 }: DeleteOfficialDialogProps) {
   const [open, setOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -36,8 +35,15 @@ export default function DeleteOfficialDialog({
   const handleDelete = async () => {
     setIsPending(true);
     try {
-      await deleteOfficialMutation.mutateAsync({ type, id });
-      toast.success(`${officialName} removed successfully!`);
+      // Delete the official's picture from Firebase Storage if it exists.
+      if (official.picture) {
+        await deleteSingleImage(official.picture);
+      }
+
+      // Delete the official from Firestore and update the cache.
+      await deleteOfficialMutation.mutateAsync({ type, id: official.id });
+      
+      toast.success(`${official.fullName} removed successfully!`);
       setOpen(false);
     } catch (error) {
       console.error("Failed to delete official:", error);
@@ -56,7 +62,7 @@ export default function DeleteOfficialDialog({
           className="size-7 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
         >
           <Trash2 className="size-3.5" />
-          <span className="sr-only">Delete {officialName}</span>
+          <span className="sr-only">Delete {official.fullName}</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -64,7 +70,7 @@ export default function DeleteOfficialDialog({
           <AlertDialogTitle>Remove Official</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to remove{" "}
-            <span className="font-medium text-foreground">{officialName}</span>{" "}
+            <span className="font-medium text-foreground">{official.fullName}</span>{" "}
             from the officials list? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>

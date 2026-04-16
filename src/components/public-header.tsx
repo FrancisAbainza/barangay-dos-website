@@ -23,15 +23,18 @@ const navLinks = [
 ];
 
 export default function PublicHeader() {
-  const { barangayName, barangayLogoUrl } = useBarangayProfile();
   const pathname = usePathname();
+  const { data: profile } = useBarangayProfile();
+
+  const barangayName = profile?.name ?? "Barangay Dos";
+  const barangayLogoUrl = profile?.barangayLogo?.uri ?? "/logo.png";
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card py-2 px-4">
       <div className="container flex h-full m-auto items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <Image
-            src={barangayLogoUrl ?? "/logo.png"}
+            src={barangayLogoUrl}
             alt={`${barangayName} logo`}
             width={75}
             height={75}
@@ -76,7 +79,7 @@ export default function PublicHeader() {
             {/* Sidebar-style branding header */}
             <SheetHeader className="flex flex-col items-center gap-2 border-b border-border py-4 px-4">
               <Image
-                src={barangayLogoUrl ?? "/no-image.jpg"}
+                src={barangayLogoUrl}
                 alt={`${barangayName} logo`}
                 width={100}
                 height={100}

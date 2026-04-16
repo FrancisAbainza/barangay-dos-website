@@ -8,14 +8,17 @@ import { useBarangayProfile } from "@/hooks/use-barangay-profile-query";
 
 export default function DashboardHeader() {
   const { toggleSidebar } = useSidebar();
-  const { barangayName, barangayLogoUrl } = useBarangayProfile();
+  const { data: profile } = useBarangayProfile();
+
+  const barangayName = profile?.name ?? "Barangay Dos";
+  const barangayLogoUrl = profile?.barangayLogo?.uri ?? "/no-image.jpg";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-card py-2 px-4 md:hidden">
       <div className="container flex h-full m-auto items-center justify-between">
         <div className="flex items-center gap-3">
           <Image
-            src={barangayLogoUrl ?? "/no-image.jpg"}
+            src={barangayLogoUrl}
             alt={`${barangayName} logo`}
             width={50}
             height={50}

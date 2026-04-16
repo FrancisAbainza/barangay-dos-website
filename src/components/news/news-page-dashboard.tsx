@@ -29,9 +29,11 @@ function NewsPageContent() {
   const pinnedQuery = usePinnedPosts();
   const savedQuery = useSavedPosts();
 
-  const { barangayName } = useBarangayProfile();
+  const { data: profile } = useBarangayProfile();
   const { userProfile } = useAuth();
   const isAuthenticated = !!userProfile;
+
+  const barangayName = profile?.name ?? "Barangay Dos";
 
   const posts = useMemo(
     () => feedQuery.data?.pages.flatMap((p) => p.posts) ?? [],

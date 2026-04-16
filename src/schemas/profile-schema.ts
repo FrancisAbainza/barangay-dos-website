@@ -1,9 +1,9 @@
 import z from "zod";
-import type { ImageItem } from "@/components/multi-image-uploader";
+import type { ImageItem } from "@/components/single-image-uploader";
 
 export const editProfileSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  profilePicture: z.array(z.custom<ImageItem>()).optional(),
+  profilePicture: z.custom<ImageItem>().nullable().optional(),
 });
 
 export type EditProfileFormValues = z.infer<typeof editProfileSchema>;

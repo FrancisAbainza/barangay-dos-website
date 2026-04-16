@@ -7,6 +7,30 @@ import type { AttachmentItem as FormAttachmentItem } from "@/components/attachme
 import type { ImageItem, MediaItem, AttachmentItem } from "@/types";
 import { deleteObject, getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
+export const uploadSingleImage = async (
+  image: FormImageItem | null | undefined,
+  basePath: string,
+): Promise<ImageItem | undefined> => {
+  if (!image) return undefined;
+
+  if (image.path) {
+    // Already uploaded — uri is a download URL string, path is a storage path.
+    return { uri: image.uri as string, path: image.path };
+  }
+
+  // 1. Create unique reference
+  const path = `${basePath}/${Date.now()}-${Math.random().toString(36).substring(7)}`;
+  const storageRef = ref(storage, path);
+
+  // 2. Upload
+  const snapshot = await uploadBytes(storageRef, image.uri as File);
+
+  // 3. Get URL
+  const url = await getDownloadURL(snapshot.ref);
+
+  return { uri: url, path };
+};
+
 export const uploadMultiplePostImages = async (
   images: FormImageItem[],
   basePath: string,
@@ -31,6 +55,12 @@ export const uploadMultiplePostImages = async (
   });
 
   return Promise.all(uploadPromises);
+};
+
+export const deleteSingleImage = async (image: { path?: string } | null | undefined) => {
+  if (!image?.path) return;
+  const imageRef = ref(storage, image.path);
+  await deleteObject(imageRef);
 };
 
 export const deleteImagesByPath = async (images: { path?: string }[]) => {

@@ -18,10 +18,10 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import MultiImageUploader from "@/components/multi-image-uploader";
+import SingleImageUploader from "@/components/single-image-uploader";
 import { editProfileSchema, EditProfileFormValues } from "@/schemas/profile-schema";
 import { useAuth } from "@/contexts/auth-context";
-import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
+import { uploadSingleImage, deleteSingleImage } from "@/services/storage-service";
 import { updateUserProfile } from "@/services/user-service";
 
 export default function EditProfileDialog() {
@@ -33,7 +33,7 @@ export default function EditProfileDialog() {
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
       fullName: userProfile?.fullName ?? "",
-      profilePicture: userProfile?.profilePicture ? [userProfile.profilePicture] : [],
+      profilePicture: userProfile?.profilePicture,
     },
   });
 
@@ -41,7 +41,7 @@ export default function EditProfileDialog() {
     if (open) {
       reset({
         fullName: userProfile?.fullName ?? "",
-        profilePicture: userProfile?.profilePicture ? [userProfile.profilePicture] : [],
+        profilePicture: userProfile?.profilePicture,
       });
     }
   }, [open, userProfile, reset]);
@@ -50,21 +50,18 @@ export default function EditProfileDialog() {
     if (!user || !userProfile) return;
 
     try {
-      const { fullName, profilePicture = [] } = data;
+      const { fullName, profilePicture } = data;
 
       // Upload the selected picture to Firebase Storage.
-      const uploadedPictures = await uploadMultiplePostImages(profilePicture, `profiles/${user.uid}`);
+      const uploadedPicture = await uploadSingleImage(profilePicture, `profiles/${user.uid}`);
 
       // Persist the updated profile fields to Firestore.
-      await updateUserProfile(user.uid, { fullName, profilePicture: uploadedPictures[0] });
+      await updateUserProfile(user.uid, { fullName, profilePicture: uploadedPicture });
 
       // Delete the old picture from Firebase Storage if the user replaced or removed it.
-      const pictureToDelete =
-        userProfile.profilePicture &&
-        !uploadedPictures.some((u) => u.path === userProfile.profilePicture!.path)
-          ? [userProfile.profilePicture]
-          : [];
-      await deleteImagesByPath(pictureToDelete);
+      if (userProfile.profilePicture && userProfile.profilePicture.path !== uploadedPicture?.path) {
+        await deleteSingleImage(userProfile.profilePicture);
+      }
 
       // Re-fetch the user profile so the UI reflects the saved changes immediately.
       await refreshUserProfile();
@@ -109,10 +106,9 @@ export default function EditProfileDialog() {
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>Profile Picture</FieldLabel>
-                  <MultiImageUploader
-                    mode="single"
-                    images={field.value ?? []}
-                    onImagesChange={field.onChange}
+                  <SingleImageUploader
+                    image={field.value}
+                    onImageChange={field.onChange}
                   />
                   <FieldError errors={[fieldState.error]} />
                 </Field>

@@ -24,7 +24,7 @@ import { getInitials } from "@/lib/utils";
 // Fallback values shown when the context has no profile yet.
 const PROFILE_FALLBACK = {
   name: "Barangay Dos",
-  address: "District 2, Quezon City, Metro Manila",
+  address: "Carmona, Cavite",
   tagline:
     "Dedicated to serving every resident with transparency, compassion, and excellence in public service.",
 };
@@ -102,19 +102,13 @@ function OfficialsSection({
                 {isAuthenticated && (
                   <div className="absolute top-2 right-2 flex gap-0.5">
                     <EditOfficialDialog
-                      id={chief.id}
+                      official={chief}
                       type={type}
                       takenRoles={allTakenSingletonRoles}
-                      defaultValues={{
-                        fullName: chief.fullName,
-                        role: chief.role,
-                        picture: chief.picture ? [chief.picture] : [],
-                      }}
                     />
                     <DeleteOfficialDialog
-                      id={chief.id}
+                      official={chief}
                       type={type}
-                      officialName={chief.fullName}
                     />
                   </div>
                 )}
@@ -160,19 +154,13 @@ function OfficialsSection({
                     {isAuthenticated && (
                       <div className="flex gap-0.5 shrink-0">
                         <EditOfficialDialog
-                          id={official.id}
+                          official={official}
                           type={type}
                           takenRoles={allTakenSingletonRoles}
-                          defaultValues={{
-                            fullName: official.fullName,
-                            role: official.role,
-                            picture: official.picture ? [official.picture] : [],
-                          }}
                         />
                         <DeleteOfficialDialog
-                          id={official.id}
+                          official={official}
                           type={type}
-                          officialName={official.fullName}
                         />
                       </div>
                     )}
@@ -192,19 +180,18 @@ export default function AboutUsPageDashboard() {
 }
 
 function AboutUsPageContent() {
-  const { profile, barangayName, barangayLogoUrl, skLogoUrl } =
-    useBarangayProfile();
+  const { data: profile } = useBarangayProfile();
   const { data: barangayOfficials = [] } = useOfficials("barangay");
   const { data: skOfficials = [] } = useOfficials("sk");
   const { userProfile } = useAuth();
   const isAuthenticated =
     userProfile?.role === "Admin" || userProfile?.role === "Super Admin";
 
-  const barangayProfile = {
-    name: profile?.name || PROFILE_FALLBACK.name,
-    address: profile?.address || PROFILE_FALLBACK.address,
-    tagline: profile?.tagline || PROFILE_FALLBACK.tagline,
-  };
+  const name = profile?.name || PROFILE_FALLBACK.name;
+  const address = profile?.address || PROFILE_FALLBACK.address;
+  const tagline = profile?.tagline || PROFILE_FALLBACK.tagline;
+  const barangayLogoUrl = profile?.barangayLogo?.uri ?? "/logo.png";
+  const skLogoUrl = profile?.skLogo?.uri ?? "/logo.png";
 
   return (
     <div className="container space-y-6 m-auto">
@@ -216,7 +203,7 @@ function AboutUsPageContent() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">About Us</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {barangayName} officials and Sangguniang Kabataan.
+            {name} officials and Sangguniang Kabataan.
           </p>
         </div>
       </div>
@@ -227,30 +214,28 @@ function AboutUsPageContent() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
               <Image
-                src={barangayLogoUrl ?? "/logo.png"}
-                alt={`${barangayProfile.name} logo`}
+                src={barangayLogoUrl}
+                alt={`${name} logo`}
                 width={100}
                 height={100}
                 className="shrink-0 object-contain"
               />
               <div className="space-y-1.5">
-                <h2 className="text-2xl font-bold">{barangayProfile.name}</h2>
+                <h2 className="text-2xl font-bold">{name}</h2>
                 <p className="flex items-center gap-1.5 text-sm text-primary-foreground/70">
                   <MapPin className="size-3.5 shrink-0" />
-                  {barangayProfile.address}
+                  {address}
                 </p>
               </div>
             </div>
             {isAuthenticated && (
               <EditHeaderDialog
                 defaultValues={{
-                  name: barangayProfile.name,
-                  address: barangayProfile.address,
-                  tagline: barangayProfile.tagline,
-                  barangayLogo: profile?.barangayLogo
-                    ? [profile.barangayLogo]
-                    : [],
-                  skLogo: profile?.skLogo ? [profile.skLogo] : [],
+                  name,
+                  address,
+                  tagline,
+                  barangayLogo: profile?.barangayLogo,
+                  skLogo: profile?.skLogo,
                 }}
               />
             )}
@@ -260,7 +245,7 @@ function AboutUsPageContent() {
           <div className="flex gap-3 items-start">
             <Quote className="size-5 shrink-0 text-primary mt-0.5" />
             <p className="text-sm italic leading-relaxed text-muted-foreground">
-              {barangayProfile.tagline}
+              {tagline}
             </p>
           </div>
         </CardContent>
@@ -272,14 +257,14 @@ function AboutUsPageContent() {
           title="Barangay Officials"
           type="barangay"
           officials={barangayOfficials}
-          logoSrc={barangayLogoUrl ?? "/logo.png"}
+          logoSrc={barangayLogoUrl}
           isAuthenticated={isAuthenticated}
         />
         <OfficialsSection
           title="Sangguniang Kabataan"
           type="sk"
           officials={skOfficials}
-          logoSrc={skLogoUrl ?? "/logo.png"}
+          logoSrc={skLogoUrl}
           isAuthenticated={isAuthenticated}
         />
       </div>

@@ -12,26 +12,19 @@ export type ImageItem = {
 interface MultiImageUploaderProps {
   onImagesChange: (images: ImageItem[]) => void;
   images: ImageItem[];
-  mode?: "single" | "multi";
   maxFiles?: number;
 }
 
-export default function MultiImageUploader({ onImagesChange, images, mode = "multi", maxFiles }: MultiImageUploaderProps) {
-  const isSingle = mode === "single";
+export default function MultiImageUploader({ onImagesChange, images, maxFiles }: MultiImageUploaderProps) {
   const atLimit = maxFiles !== undefined && images.length >= maxFiles;
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
-    if (isSingle) {
-      onImagesChange([{ uri: acceptedFiles[0] }]);
-      return;
-    }
-
     const remaining = maxFiles !== undefined ? maxFiles - images.length : acceptedFiles.length;
     const newImages: ImageItem[] = acceptedFiles.slice(0, remaining).map((file) => ({ uri: file }));
     onImagesChange([...images, ...newImages]);
-  }, [images, onImagesChange, isSingle, maxFiles]);
+  }, [images, onImagesChange, maxFiles]);
 
   const handleDelete = (deletedImageIndex: number) => {
     const updatedImages = images.filter((_, index) => index !== deletedImageIndex);
@@ -41,10 +34,10 @@ export default function MultiImageUploader({ onImagesChange, images, mode = "mul
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
-    multiple: !isSingle,
+    multiple: true,
   });
 
-  const showDropzone = (!isSingle || images.length === 0) && !atLimit;
+  const showDropzone = !atLimit;
 
   return (
     <div>
@@ -56,9 +49,9 @@ export default function MultiImageUploader({ onImagesChange, images, mode = "mul
           <input {...getInputProps()} />
           <Upload className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
           {isDragActive ? (
-            <p>Drop the image{!isSingle ? "s" : ""} here ...</p>
+            <p>Drop the images here ...</p>
           ) : (
-            <p>Drag & drop {isSingle ? "an image" : "images"} here, or click to select</p>
+            <p>Drag & drop images here, or click to select</p>
           )}
         </div>
       )}
@@ -76,8 +69,8 @@ export default function MultiImageUploader({ onImagesChange, images, mode = "mul
               />
             </div>
             <div className="flex-1 overflow-hidden py-3">
-              <p className="break-all">{isSingle ? "Selected Image" : `Image ${index + 1}`}</p>
-              {!isSingle && index === 0 && (
+              <p className="break-all">Image {index + 1}</p>
+              {index === 0 && (
                 <Badge variant={"outline"}>Featured Image</Badge>
               )}
             </div>

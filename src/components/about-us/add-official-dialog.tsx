@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import MultiImageUploader from "@/components/multi-image-uploader";
+import SingleImageUploader from "@/components/single-image-uploader";
 import {
   officialSchema,
   type OfficialFormValues,
@@ -34,7 +34,7 @@ import {
   SK_ROLES,
   type OfficialType,
 } from "@/types/about-us";
-import { uploadMultiplePostImages } from "@/services/storage-service";
+import { uploadSingleImage } from "@/services/storage-service";
 import { useAddOfficial } from "@/hooks/use-officials-queries";
 
 interface AddOfficialDialogProps {
@@ -61,31 +61,31 @@ export default function AddOfficialDialog({
     formState: { errors, isSubmitting },
   } = useForm<OfficialFormValues>({
     resolver: zodResolver(officialSchema),
-    defaultValues: { fullName: "", role: "", picture: [] },
+    defaultValues: { fullName: "", role: "", picture: undefined },
   });
 
   useEffect(() => {
     if (open) {
-      reset({ fullName: "", role: "", picture: [] });
+      reset({ fullName: "", role: "", picture: undefined });
     }
   }, [open, reset]);
 
   const onSubmit = async (data: OfficialFormValues) => {
     try {
-      const { fullName, role, picture = [] } = data;
+      const { fullName, role, picture } = data;
 
-      // Upload the picture to Firebase Storage if one was selected.
-      // - If uri is a File, it gets uploaded and a download URL + path are returned.
-      // - If picture is empty (no picture selected), this resolves to an empty array.
-      const uploadedPictures = await uploadMultiplePostImages(
+      // Upload the selected picture to Firebase Storage.
+      const uploadedPicture = await uploadSingleImage(
         picture,
         `officials/${type}`,
       );
 
+      // Persist the new official to Firestore and update the cache.
       addOfficialMutation.mutate({
         type,
-        data: { fullName, role, picture: uploadedPictures[0] },
+        data: { fullName, role, picture: uploadedPicture },
       });
+
       toast.success("Official added successfully!");
       setOpen(false);
     } catch (error) {
@@ -155,10 +155,9 @@ export default function AddOfficialDialog({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>Picture</FieldLabel>
-                  <MultiImageUploader
-                    mode="single"
-                    images={field.value ?? []}
-                    onImagesChange={field.onChange}
+                  <SingleImageUploader
+                    image={field.value}
+                    onImageChange={field.onChange}
                   />
                   <FieldError errors={[fieldState.error]} />
                 </Field>

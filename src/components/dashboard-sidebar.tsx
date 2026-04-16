@@ -71,9 +71,12 @@ const tanodMenuItems = [
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const { user, userProfile, logout } = useAuth();
-  const { barangayName, barangayLogoUrl } = useBarangayProfile();
+  const { data: profile } = useBarangayProfile();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+
+  const barangayName = profile?.name ?? "Barangay Dos";
+  const barangayLogoUrl = profile?.barangayLogo?.uri ?? "/logo.png";
 
   return (
     <>
@@ -83,7 +86,7 @@ export default function DashboardSidebar() {
           <SidebarHeader className="flex flex-row items-center justify-center border-b border-sidebar-border py-4">
             <div className="flex flex-col items-center gap-2">
               <Image
-                src={barangayLogoUrl ?? "/logo.png"}
+                src={barangayLogoUrl}
                 alt={`${barangayName} logo`}
                 width={150}
                 height={150}

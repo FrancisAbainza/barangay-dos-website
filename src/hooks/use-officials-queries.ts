@@ -45,7 +45,7 @@ export function useAddOfficial() {
     onSuccess: (docId, { type, data }) => {
       queryClient.setQueryData<Official[]>(officialsKeys.list(type), (old) => [
         ...(old ?? []),
-        { id: docId, fullName: data.fullName, role: data.role, picture: data.picture },
+        { id: docId, ...data },
       ]);
     },
   });
@@ -68,11 +68,7 @@ export function useUpdateOfficial() {
     }) => updateOfficial(type, id, data),
     onSuccess: (_, { type, id, data }) => {
       queryClient.setQueryData<Official[]>(officialsKeys.list(type), (old) =>
-        old?.map((o) =>
-          o.id === id
-            ? { ...o, fullName: data.fullName, role: data.role, picture: data.picture }
-            : o,
-        ),
+        old?.map((o) => (o.id === id ? { ...o, ...data } : o)),
       );
     },
   });

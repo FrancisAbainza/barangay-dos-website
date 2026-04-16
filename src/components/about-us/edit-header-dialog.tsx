@@ -18,12 +18,12 @@ import {
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import MultiImageUploader from "@/components/multi-image-uploader";
+import SingleImageUploader from "@/components/single-image-uploader";
 import {
   editHeaderSchema,
   EditHeaderFormValues,
 } from "@/schemas/about-us-schema";
-import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
+import { uploadSingleImage, deleteSingleImage } from "@/services/storage-service";
 import { useUpdateBarangayHeader } from "@/hooks/use-barangay-profile-query";
 
 interface EditHeaderDialogProps {
@@ -55,15 +55,12 @@ export default function EditHeaderDialog({
 
   const onSubmit = async (data: EditHeaderFormValues) => {
     try {
-      const { name, address, tagline, barangayLogo = [], skLogo = [] } = data;
+      const { name, address, tagline, barangayLogo, skLogo } = data;
 
       // Upload logos to Firebase Storage.
-      // - Items that already have a `path` (existing uploads) are returned as-is.
-      // - Items whose `uri` is a File are uploaded and a download URL + path are returned.
-      // - Empty arrays (logo cleared by user) resolve to an empty array.
       const [uploadedBarangayLogo, uploadedSkLogo] = await Promise.all([
-        uploadMultiplePostImages(barangayLogo, "about-us/barangay-logo"),
-        uploadMultiplePostImages(skLogo, "about-us/sk-logo"),
+        uploadSingleImage(barangayLogo, "about-us/barangay-logo"),
+        uploadSingleImage(skLogo, "about-us/sk-logo"),
       ]);
 
       // Persist the updated header fields to Firestore and update the cache.
@@ -71,21 +68,17 @@ export default function EditHeaderDialog({
         name,
         address,
         tagline,
-        barangayLogo: uploadedBarangayLogo[0],
-        skLogo: uploadedSkLogo[0],
+        barangayLogo: uploadedBarangayLogo,
+        skLogo: uploadedSkLogo,
       });
 
       // Delete logos that existed before but are no longer in the uploaded set
-      // (i.e. the user removed them), then delete them from Firebase Storage.
-      const logosToDelete = [
-        ...(defaultValues.barangayLogo ?? []).filter(
-          (existing) => !uploadedBarangayLogo.some((u) => u.path === existing.path),
-        ),
-        ...(defaultValues.skLogo ?? []).filter(
-          (existing) => !uploadedSkLogo.some((u) => u.path === existing.path),
-        ),
-      ];
-      await deleteImagesByPath(logosToDelete);
+      if (defaultValues.barangayLogo && defaultValues.barangayLogo.path !== uploadedBarangayLogo?.path) {
+        await deleteSingleImage(defaultValues.barangayLogo);
+      }
+      if (defaultValues.skLogo && defaultValues.skLogo.path !== uploadedSkLogo?.path) {
+        await deleteSingleImage(defaultValues.skLogo);
+      }
 
       toast.success("Header updated successfully!");
       setOpen(false);
@@ -149,10 +142,9 @@ export default function EditHeaderDialog({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>Barangay Logo</FieldLabel>
-                  <MultiImageUploader
-                    mode="single"
-                    images={field.value ?? []}
-                    onImagesChange={field.onChange}
+                  <SingleImageUploader
+                    image={field.value}
+                    onImageChange={field.onChange}
                   />
                   <FieldError errors={[fieldState.error]} />
                 </Field>
@@ -165,10 +157,9 @@ export default function EditHeaderDialog({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>SK Logo</FieldLabel>
-                  <MultiImageUploader
-                    mode="single"
-                    images={field.value ?? []}
-                    onImagesChange={field.onChange}
+                  <SingleImageUploader
+                    image={field.value}
+                    onImageChange={field.onChange}
                   />
                   <FieldError errors={[fieldState.error]} />
                 </Field>

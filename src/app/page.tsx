@@ -68,7 +68,10 @@ const getFeatures = (name: string) => [
 ];
 
 export default function Home() {
-  const { barangayName } = useBarangayProfile();
+  const { data: profile } = useBarangayProfile();
+
+  const barangayName = profile?.name ?? "Barangay Dos";
+
   const features = getFeatures(barangayName);
 
   return (

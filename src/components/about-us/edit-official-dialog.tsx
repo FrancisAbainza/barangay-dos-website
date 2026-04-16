@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import MultiImageUploader from "@/components/multi-image-uploader";
+import SingleImageUploader from "@/components/single-image-uploader";
 import {
   officialSchema,
   type OfficialFormValues,
@@ -32,28 +32,22 @@ import {
 import {
   BARANGAY_ROLES,
   SK_ROLES,
+  type Official,
   type OfficialType,
 } from "@/types/about-us";
-import type { ImageItem } from "@/components/multi-image-uploader";
-import { uploadMultiplePostImages, deleteImagesByPath } from "@/services/storage-service";
+import { uploadSingleImage, deleteSingleImage } from "@/services/storage-service";
 import { useUpdateOfficial } from "@/hooks/use-officials-queries";
 
 interface EditOfficialDialogProps {
-  id: string;
+  official: Official;
   type: OfficialType;
   takenRoles: string[];
-  defaultValues: {
-    fullName: string;
-    role: string;
-    picture?: ImageItem[];
-  };
 }
 
 export default function EditOfficialDialog({
-  id,
+  official,
   type,
   takenRoles,
-  defaultValues,
 }: EditOfficialDialogProps) {
   const roles = type === "barangay" ? BARANGAY_ROLES : SK_ROLES;
   const [open, setOpen] = useState(false);
@@ -68,47 +62,44 @@ export default function EditOfficialDialog({
   } = useForm<OfficialFormValues>({
     resolver: zodResolver(officialSchema),
     defaultValues: {
-      fullName: defaultValues.fullName,
-      role: defaultValues.role,
-      picture: defaultValues.picture ?? [],
+      fullName: official.fullName,
+      role: official.role,
+      picture: official.picture,
     },
   });
 
   useEffect(() => {
     if (open) {
       reset({
-        fullName: defaultValues.fullName,
-        role: defaultValues.role,
-        picture: defaultValues.picture ?? [],
+        fullName: official.fullName,
+        role: official.role,
+        picture: official.picture,
       });
     }
-  }, [open, defaultValues, reset]);
+  }, [open, official, reset]);
 
   const onSubmit = async (data: OfficialFormValues) => {
     try {
-      const { fullName, role, picture = [] } = data;
+      const { fullName, role, picture } = data;
 
-      // Upload the picture to Firebase Storage if a new one was selected.
-      // - Items that already have a `path` (existing uploads) are returned as-is.
-      // - Items whose `uri` is a File are uploaded and a download URL + path are returned.
-      // - Empty arrays (picture cleared by user) resolve to an empty array.
-      const uploadedPictures = await uploadMultiplePostImages(
+      // Upload the selected picture to Firebase Storage.
+      const uploadedPicture = await uploadSingleImage(
         picture,
         `officials/${type}`,
       );
 
+      // Persist the updated official to Firestore and update the cache.
       updateOfficialMutation.mutate({
         type,
-        id,
-        data: { fullName, role, picture: uploadedPictures[0] },
+        id: official.id,
+        data: { fullName, role, picture: uploadedPicture },
       });
 
-      // Delete the old picture from Firebase Storage if the user replaced or removed it.
-      const picturesToDelete = (defaultValues.picture ?? []).filter(
-        (existing) =>
-          !uploadedPictures.some((u) => u.path === existing.path),
-      );
-      await deleteImagesByPath(picturesToDelete);
+      // Delete the old picture from Firebase Storage if the official replaced or removed it.
+      if (official.picture && official.picture.path !== uploadedPicture?.path) {
+        await deleteSingleImage(official.picture);
+      }
+
       toast.success("Official updated successfully!");
       setOpen(false);
     } catch (error) {
@@ -126,7 +117,7 @@ export default function EditOfficialDialog({
           className="size-7 shrink-0 text-muted-foreground hover:text-primary"
         >
           <Pencil className="size-3.5" />
-          <span className="sr-only">Edit {defaultValues.fullName}</span>
+          <span className="sr-only">Edit {official.fullName}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -165,7 +156,7 @@ export default function EditOfficialDialog({
                         // they can save without changing it.
                         const blocked =
                           takenRoles.includes(role) &&
-                          role !== defaultValues.role;
+                          role !== official.role;
                         return (
                           <SelectItem
                             key={role}
@@ -190,10 +181,9 @@ export default function EditOfficialDialog({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>Picture</FieldLabel>
-                  <MultiImageUploader
-                    mode="single"
-                    images={field.value ?? []}
-                    onImagesChange={field.onChange}
+                  <SingleImageUploader
+                    image={field.value}
+                    onImageChange={field.onChange}
                   />
                   <FieldError errors={[fieldState.error]} />
                 </Field>

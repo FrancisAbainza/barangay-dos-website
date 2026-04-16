@@ -3,7 +3,9 @@
 import { useBarangayProfile } from "@/hooks/use-barangay-profile-query";
 
 export default function PublicFooter() {
-  const { barangayName } = useBarangayProfile();
+  const { data: profile } = useBarangayProfile();
+
+  const barangayName = profile?.name ?? "Barangay Dos";
 
   return (
     <footer className="border-t border-border bg-card px-6 py-8">
