@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil } from "lucide-react";
@@ -47,11 +47,7 @@ export default function EditHeaderDialog({
     defaultValues,
   });
 
-  useEffect(() => {
-    if (open) {
-      reset(defaultValues);
-    }
-  }, [open, defaultValues, reset]);
+
 
   const onSubmit = async (data: EditHeaderFormValues) => {
     try {
@@ -89,7 +85,16 @@ export default function EditHeaderDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(val) => {
+        setOpen(val);
+
+        if (val) {
+          reset(defaultValues);
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="secondary" size="sm" className="gap-2 shrink-0 self-start">
           <Pencil className="size-3.5" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
@@ -64,11 +64,7 @@ export default function AddOfficialDialog({
     defaultValues: { fullName: "", role: "", picture: undefined },
   });
 
-  useEffect(() => {
-    if (open) {
-      reset({ fullName: "", role: "", picture: undefined });
-    }
-  }, [open, reset]);
+
 
   const onSubmit = async (data: OfficialFormValues) => {
     try {
@@ -95,7 +91,16 @@ export default function AddOfficialDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(val) => {
+        setOpen(val);
+
+        if (val) {
+          reset({ fullName: "", role: "", picture: undefined });
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Plus className="size-3.5" />

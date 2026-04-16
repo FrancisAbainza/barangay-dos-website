@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil } from "lucide-react";
@@ -68,15 +68,7 @@ export default function EditOfficialDialog({
     },
   });
 
-  useEffect(() => {
-    if (open) {
-      reset({
-        fullName: official.fullName,
-        role: official.role,
-        picture: official.picture,
-      });
-    }
-  }, [open, official, reset]);
+
 
   const onSubmit = async (data: OfficialFormValues) => {
     try {
@@ -109,7 +101,20 @@ export default function EditOfficialDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(val) => {
+        setOpen(val);
+
+        if (val) {
+          reset({
+            fullName: official.fullName,
+            role: official.role,
+            picture: official.picture,
+          });
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           variant="ghost"

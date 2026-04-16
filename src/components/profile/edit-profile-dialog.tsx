@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil } from "lucide-react";
@@ -37,14 +37,7 @@ export default function EditProfileDialog() {
     },
   });
 
-  useEffect(() => {
-    if (open) {
-      reset({
-        fullName: userProfile?.fullName ?? "",
-        profilePicture: userProfile?.profilePicture,
-      });
-    }
-  }, [open, userProfile, reset]);
+
 
   const onSubmit = async (data: EditProfileFormValues) => {
     if (!user || !userProfile) return;
@@ -76,7 +69,19 @@ export default function EditProfileDialog() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(val) => {
+        setOpen(val);
+
+        if (val) {
+          reset({
+            fullName: userProfile?.fullName ?? "",
+            profilePicture: userProfile?.profilePicture,
+          });
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Pencil className="h-4 w-4" />

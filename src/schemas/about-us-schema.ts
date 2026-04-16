@@ -1,6 +1,5 @@
 import z from "zod";
 import type { ImageItem } from "@/components/single-image-uploader";
-import type { OfficialType } from "@/types/about-us";
 
 export const editHeaderSchema = z.object({
   name: z.string().min(2, "Barangay name must be at least 2 characters"),
