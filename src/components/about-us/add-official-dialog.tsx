@@ -34,7 +34,6 @@ import {
   SK_ROLES,
   type OfficialType,
 } from "@/types/about-us";
-import { uploadSingleImage } from "@/services/storage-service";
 import { useAddOfficial } from "@/hooks/use-officials-queries";
 
 interface AddOfficialDialogProps {
@@ -68,18 +67,14 @@ export default function AddOfficialDialog({
 
   const onSubmit = async (data: OfficialFormValues) => {
     try {
-      const { fullName, role, picture } = data;
-
-      // Upload the selected picture to Firebase Storage.
-      const uploadedPicture = await uploadSingleImage(
-        picture,
-        `officials/${type}`,
-      );
-
-      // Persist the new official to Firestore and update the cache.
+      // Call the mutation which handles upload internally
       addOfficialMutation.mutate({
         type,
-        data: { fullName, role, picture: uploadedPicture },
+        data: {
+          fullName: data.fullName,
+          role: data.role,
+          picture: data.picture ?? undefined,
+        },
       });
 
       toast.success("Official added successfully!");

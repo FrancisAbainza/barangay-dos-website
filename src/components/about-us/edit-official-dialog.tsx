@@ -35,7 +35,6 @@ import {
   type Official,
   type OfficialType,
 } from "@/types/about-us";
-import { uploadSingleImage, deleteSingleImage } from "@/services/storage-service";
 import { useUpdateOfficial } from "@/hooks/use-officials-queries";
 
 interface EditOfficialDialogProps {
@@ -72,25 +71,17 @@ export default function EditOfficialDialog({
 
   const onSubmit = async (data: OfficialFormValues) => {
     try {
-      const { fullName, role, picture } = data;
-
-      // Upload the selected picture to Firebase Storage.
-      const uploadedPicture = await uploadSingleImage(
-        picture,
-        `officials/${type}`,
-      );
-
-      // Persist the updated official to Firestore and update the cache.
+      // Call the mutation which handles upload and delete internally
       updateOfficialMutation.mutate({
         type,
         id: official.id,
-        data: { fullName, role, picture: uploadedPicture },
+        data: {
+          fullName: data.fullName,
+          role: data.role,
+          picture: data.picture ?? undefined,
+        },
+        oldPicture: official.picture,
       });
-
-      // Delete the old picture from Firebase Storage if the official replaced or removed it.
-      if (official.picture && official.picture.path !== uploadedPicture?.path) {
-        await deleteSingleImage(official.picture);
-      }
 
       toast.success("Official updated successfully!");
       setOpen(false);

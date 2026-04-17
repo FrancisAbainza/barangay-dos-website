@@ -146,7 +146,13 @@ export function PostBody({
                   {canManage && (
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
-                      onClick={() => deletePost.mutate(post.id)}
+                      onClick={() =>
+                        deletePost.mutate({
+                          postId: post.id,
+                          media: post.media,
+                          attachments: post.attachments,
+                        })
+                      }
                     >
                       <Trash2 className="size-4" />
                       Delete

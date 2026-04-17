@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { Official, OfficialType } from "@/types/about-us";
 import { useDeleteOfficial } from "@/hooks/use-officials-queries";
-import { deleteSingleImage } from "@/services/storage-service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,13 +34,12 @@ export default function DeleteOfficialDialog({
   const handleDelete = async () => {
     setIsPending(true);
     try {
-      // Delete the official's picture from Firebase Storage if it exists.
-      if (official.picture) {
-        await deleteSingleImage(official.picture);
-      }
-
-      // Delete the official from Firestore and update the cache.
-      await deleteOfficialMutation.mutateAsync({ type, id: official.id });
+      // Call the mutation which handles image deletion internally
+      await deleteOfficialMutation.mutateAsync({
+        type,
+        id: official.id,
+        picture: official.picture,
+      });
       
       toast.success(`${official.fullName} removed successfully!`);
       setOpen(false);

@@ -15,8 +15,6 @@ import NewsForm from "@/components/news/news-form";
 import { NewsFormValues } from "@/schemas/news-schema";
 import { useAuth } from "@/contexts/auth-context";
 import { useCreatePost } from "@/hooks/use-news-queries";
-import { createNewsPost } from "@/services/news-service";
-import { uploadMultipleMedia, uploadMultipleAttachments } from "@/services/storage-service";
 
 export function CreateNewsDialog() {
   const [open, setOpen] = useState(false);
@@ -27,26 +25,8 @@ export function CreateNewsDialog() {
     if (!user) return;
 
     try {
-      const basePath = `news/${Date.now()}`;
-
-      const media =
-        data.media && data.media.length > 0
-          ? await uploadMultipleMedia(data.media, `${basePath}/media`)
-          : undefined;
-
-      const attachments =
-        data.attachments && data.attachments.length > 0
-          ? await uploadMultipleAttachments(data.attachments, `${basePath}/attachments`)
-          : undefined;
-
-      const post = await createNewsPost({
-        ...data,
-        media,
-        attachments,
-        authorId: user.uid,
-      });
-
-      createPost.mutate(post);
+      // Call the mutation which handles uploads internally
+      createPost.mutate(data);
       toast.success("Post published successfully.");
       setOpen(false);
     } catch (error) {

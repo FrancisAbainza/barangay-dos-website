@@ -11,8 +11,6 @@ import NewsForm from "@/components/news/news-form";
 import { NewsFormValues } from "@/schemas/news-schema";
 import { NewsPost } from "@/types";
 import { useUpdatePost } from "@/hooks/use-news-queries";
-import { updateNewsPost } from "@/services/news-service";
-import { uploadMultipleMedia, uploadMultipleAttachments } from "@/services/storage-service";
 
 interface EditNewsDialogProps {
   open: boolean;
@@ -49,25 +47,13 @@ export function EditNewsDialog({
 
   async function handleSubmit(data: NewsFormValues) {
     try {
-      const basePath = `news/${post.id}`;
-
-      const media =
-        data.media && data.media.length > 0
-          ? await uploadMultipleMedia(data.media, `${basePath}/media`)
-          : undefined;
-
-      const attachments =
-        data.attachments && data.attachments.length > 0
-          ? await uploadMultipleAttachments(data.attachments, `${basePath}/attachments`)
-          : undefined;
-
-      const updated = await updateNewsPost(post.id, {
-        ...data,
-        media,
-        attachments,
+      // Call the mutation which handles uploads and deletions internally
+      updatePost.mutate({
+        postId: post.id,
+        formData: data,
+        oldMedia: post.media,
+        oldAttachments: post.attachments,
       });
-
-      updatePost.mutate(updated);
       toast.success("Post updated successfully.");
       onOpenChange(false);
     } catch (error) {

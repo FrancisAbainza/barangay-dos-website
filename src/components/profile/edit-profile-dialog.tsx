@@ -21,13 +21,13 @@ import { Input } from "@/components/ui/input";
 import SingleImageUploader from "@/components/single-image-uploader";
 import { editProfileSchema, EditProfileFormValues } from "@/schemas/profile-schema";
 import { useAuth } from "@/contexts/auth-context";
-import { uploadSingleImage, deleteSingleImage } from "@/services/storage-service";
-import { updateUserProfile } from "@/services/user-service";
+import { useUpdateUserProfile } from "@/hooks/use-user-profile-mutation";
 
 export default function EditProfileDialog() {
   const [open, setOpen] = useState(false);
   const { user, userProfile, refreshUserProfile } = useAuth();
   const router = useRouter();
+  const updateProfileMutation = useUpdateUserProfile();
 
   const { register, control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<EditProfileFormValues>({
     resolver: zodResolver(editProfileSchema),
@@ -43,18 +43,13 @@ export default function EditProfileDialog() {
     if (!user || !userProfile) return;
 
     try {
-      const { fullName, profilePicture } = data;
-
-      // Upload the selected picture to Firebase Storage.
-      const uploadedPicture = await uploadSingleImage(profilePicture, `profiles/${user.uid}`);
-
-      // Persist the updated profile fields to Firestore.
-      await updateUserProfile(user.uid, { fullName, profilePicture: uploadedPicture });
-
-      // Delete the old picture from Firebase Storage if the user replaced or removed it.
-      if (userProfile.profilePicture && userProfile.profilePicture.path !== uploadedPicture?.path) {
-        await deleteSingleImage(userProfile.profilePicture);
-      }
+      // Call the mutation which handles upload and delete internally
+      await updateProfileMutation.mutateAsync({
+        userId: user.uid,
+        fullName: data.fullName,
+        profilePicture: data.profilePicture ?? undefined,
+        oldProfilePicture: userProfile.profilePicture,
+      });
 
       // Re-fetch the user profile so the UI reflects the saved changes immediately.
       await refreshUserProfile();

@@ -14,6 +14,8 @@ import {
   getNewsPosts,
   getPinnedPosts,
   getPostsByIds,
+  createNewsPost,
+  updateNewsPost,
   deleteNewsPost,
   toggleReaction,
   addCommentToPost,
@@ -24,6 +26,14 @@ import {
   type AuthorInfo,
 } from "@/services/news-service";
 import { toggleSavedPostForUser } from "@/services/user-service";
+import {
+  uploadMultipleMedia,
+  uploadMultipleAttachments,
+  deleteImagesByPath,
+} from "@/services/storage-service";
+import type { MediaItem as FormMediaItem } from "@/components/media-uploader";
+import type { AttachmentItem as FormAttachmentItem } from "@/components/attachment-picker";
+import type { NewsFormValues } from "@/schemas/news-schema";
 
 export const newsKeys = {
   all: ["news"] as const,
@@ -146,9 +156,34 @@ export function useEnsureAuthors(posts: NewsPost[]) {
 
 export function useCreatePost() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
-    mutationFn: (post: NewsPost) => Promise.resolve(post),
+    mutationFn: async (data: NewsFormValues) => {
+      if (!user) throw new Error("User not authenticated");
+
+      const basePath = `news/${Date.now()}`;
+
+      // Upload media and attachments to Firebase Storage
+      const [media, attachments] = await Promise.all([
+        data.media && data.media.length > 0
+          ? uploadMultipleMedia(data.media, `${basePath}/media`)
+          : Promise.resolve(undefined),
+        data.attachments && data.attachments.length > 0
+          ? uploadMultipleAttachments(data.attachments, `${basePath}/attachments`)
+          : Promise.resolve(undefined),
+      ]);
+
+      // Create the post in Firestore with uploaded file URLs
+      const post = await createNewsPost({
+        ...data,
+        media,
+        attachments,
+        authorId: user.uid,
+      });
+
+      return post;
+    },
     onSuccess: (post) => {
       queryClient.setQueryData<InfiniteData<FeedPage>>(newsKeys.feed(), (old) => {
         if (!old) return { pages: [{ posts: [post], nextCursor: null }], pageParams: [undefined] };
@@ -181,7 +216,47 @@ export function useUpdatePost() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (updated: NewsPost) => Promise.resolve(updated),
+    mutationFn: async (data: {
+      postId: string;
+      formData: NewsFormValues;
+      oldMedia?: { uri: string; path: string; type: "image" | "video" }[];
+      oldAttachments?: { uri: string; path: string; name: string; size: string }[];
+    }) => {
+      const basePath = `news/${data.postId}`;
+
+      // Upload new media and attachments
+      const [media, attachments] = await Promise.all([
+        data.formData.media && data.formData.media.length > 0
+          ? uploadMultipleMedia(data.formData.media, `${basePath}/media`)
+          : Promise.resolve(undefined),
+        data.formData.attachments && data.formData.attachments.length > 0
+          ? uploadMultipleAttachments(data.formData.attachments, `${basePath}/attachments`)
+          : Promise.resolve(undefined),
+      ]);
+
+      // Update the post in Firestore
+      const updated = await updateNewsPost(data.postId, {
+        ...data.formData,
+        media,
+        attachments,
+      });
+
+      // Determine which files were removed and delete them
+      const removedMedia = (data.oldMedia ?? []).filter(
+        (old) => !media?.some((m) => m.path === old.path),
+      );
+      const removedAttachments = (data.oldAttachments ?? []).filter(
+        (old) => !attachments?.some((a) => a.path === old.path),
+      );
+
+      // Delete removed files from Firebase Storage
+      const filesToDelete = [...removedMedia, ...removedAttachments];
+      if (filesToDelete.length > 0) {
+        await deleteImagesByPath(filesToDelete);
+      }
+
+      return updated;
+    },
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: newsKeys.all });
     },
@@ -192,7 +267,20 @@ export function useDeletePost() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (postId: string) => deleteNewsPost(postId),
+    mutationFn: async (data: {
+      postId: string;
+      media?: { uri: string; path: string; type: "image" | "video" }[];
+      attachments?: { uri: string; path: string; name: string; size: string }[];
+    }) => {
+      // Delete all associated media and attachments from Firebase Storage
+      const filesToDelete = [...(data.media ?? []), ...(data.attachments ?? [])];
+      if (filesToDelete.length > 0) {
+        await deleteImagesByPath(filesToDelete);
+      }
+
+      // Then delete the post document from Firestore
+      await deleteNewsPost(data.postId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: newsKeys.all });
     },

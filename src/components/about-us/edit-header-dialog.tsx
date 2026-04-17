@@ -23,7 +23,6 @@ import {
   editHeaderSchema,
   EditHeaderFormValues,
 } from "@/schemas/about-us-schema";
-import { uploadSingleImage, deleteSingleImage } from "@/services/storage-service";
 import { useUpdateBarangayHeader } from "@/hooks/use-barangay-profile-query";
 
 interface EditHeaderDialogProps {
@@ -51,30 +50,16 @@ export default function EditHeaderDialog({
 
   const onSubmit = async (data: EditHeaderFormValues) => {
     try {
-      const { name, address, tagline, barangayLogo, skLogo } = data;
-
-      // Upload logos to Firebase Storage.
-      const [uploadedBarangayLogo, uploadedSkLogo] = await Promise.all([
-        uploadSingleImage(barangayLogo, "about-us/barangay-logo"),
-        uploadSingleImage(skLogo, "about-us/sk-logo"),
-      ]);
-
-      // Persist the updated header fields to Firestore and update the cache.
+      // Call the mutation which handles uploads and deletions internally
       await updateHeaderMutation.mutateAsync({
-        name,
-        address,
-        tagline,
-        barangayLogo: uploadedBarangayLogo,
-        skLogo: uploadedSkLogo,
+        name: data.name,
+        address: data.address,
+        tagline: data.tagline,
+        barangayLogo: data.barangayLogo ?? undefined,
+        skLogo: data.skLogo ?? undefined,
+        oldBarangayLogo: defaultValues.barangayLogo,
+        oldSkLogo: defaultValues.skLogo,
       });
-
-      // Delete logos that existed before but are no longer in the uploaded set
-      if (defaultValues.barangayLogo && defaultValues.barangayLogo.path !== uploadedBarangayLogo?.path) {
-        await deleteSingleImage(defaultValues.barangayLogo);
-      }
-      if (defaultValues.skLogo && defaultValues.skLogo.path !== uploadedSkLogo?.path) {
-        await deleteSingleImage(defaultValues.skLogo);
-      }
 
       toast.success("Header updated successfully!");
       setOpen(false);

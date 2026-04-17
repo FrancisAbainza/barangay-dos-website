@@ -6,7 +6,7 @@ import { XIcon, Upload } from "lucide-react";
 export type ImageItem = {
   uri: File | string;
   path?: string;
-};
+} | null;
 
 interface SingleImageUploaderProps {
   onImageChange: (image: ImageItem | null) => void;
